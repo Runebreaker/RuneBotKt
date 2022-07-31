@@ -20,6 +20,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("dev.kord:kord-core:0.8.0-M15")
+    implementation("dev.kord.x:emoji:0.5.0")
 }
 
 tasks.test {
