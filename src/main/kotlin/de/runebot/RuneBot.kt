@@ -29,8 +29,10 @@ object RuneBot
         messageCommands.values.forEach { it.prepare(kord) }
 
         kord.on<MessageCreateEvent> {
+            // return if author is a bot or undefined
+            if (message.author?.isBot != false) return@on
+
             val messageContent = this.message.content
-            println(messageContent)
 
             // if message is a message command
             if (messageContent.startsWith(MessageCommand.prefix))
