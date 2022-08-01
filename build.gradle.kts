@@ -10,12 +10,17 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+
+    // Kord Snapshots Repository (Optional):
+    maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
 
 dependencies {
     testImplementation(kotlin("test"))
 
-    implementation("com.discord4j:discord4j-core:3.2.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("dev.kord:kord-core:0.8.0-M15")
+    implementation("dev.kord.x:emoji:0.5.0")
 }
 
 tasks.test {
