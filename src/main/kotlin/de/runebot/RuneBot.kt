@@ -1,6 +1,7 @@
 package de.runebot
 
 import de.runebot.behaviors.Behavior
+import de.runebot.commands.ConfigCommand
 import de.runebot.commands.MessageCommand
 import de.runebot.commands.TestCmd
 import dev.kord.core.Kord
@@ -62,7 +63,8 @@ object RuneBot
     {
         listOf<MessageCommand>(
             // add your MessageCommands here
-            TestCmd
+            TestCmd,
+            ConfigCommand
         ).forEach {
             messageCommands[it.name] = it
         }
