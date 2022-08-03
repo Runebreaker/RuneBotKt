@@ -1,5 +1,6 @@
 package de.runebot
 
+import de.runebot.behaviors.Behavior
 import de.runebot.commands.MessageCommand
 import de.runebot.commands.TestCmd
 import dev.kord.core.Kord
@@ -32,14 +33,18 @@ object RuneBot
             // return if author is a bot or undefined
             if (message.author?.isBot != false) return@on
 
-            val messageContent = this.message.content
+            val content = this.message.content
 
             // if message is a message command
-            if (messageContent.startsWith(MessageCommand.prefix))
+            if (content.startsWith(MessageCommand.prefix))
             {
-                val commandName = messageContent.split(" ")[0].removePrefix(MessageCommand.prefix)
-                messageCommands[commandName]?.execute(this, messageContent.split(" ").toTypedArray())
+                val commandName = content.split(" ")[0].removePrefix(MessageCommand.prefix)
+                messageCommands[commandName]?.execute(this, content.split(" ").toTypedArray())
+                return@on
             }
+
+            // auto message behavior
+            Behavior.runAll(content, this)
         }
 
         kord.login {
