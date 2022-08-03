@@ -39,8 +39,13 @@ object RuneBot
             if (content.startsWith(MessageCommand.prefix))
             {
                 val commandName = content.split(" ")[0].removePrefix(MessageCommand.prefix)
-                messageCommands[commandName]?.execute(this, content.split(" ").toTypedArray())
-                return@on
+                messageCommands[commandName]?.let {
+                    // Checks if message creator is admon
+                    if (!it.needsAdmin || MessageCommand.isAdmin(this))
+                    {
+                        it.execute(this, content.split(" ").toTypedArray())
+                    }
+                }
             }
 
             // auto message behavior
