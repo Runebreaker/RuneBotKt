@@ -22,6 +22,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("dev.kord:kord-core:0.8.0-M15")
     implementation("dev.kord.x:emoji:0.5.0")
+
+    implementation("org.jetbrains.exposed:exposed-core:0.38.2")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.38.2")
+    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
+
 }
 
 tasks.test {
