@@ -26,9 +26,9 @@ interface MessageCommand
     }
 
     /**
-     * This represents the literal by which the command is identified
+     * This represents the literals by which the command is identified
      */
-    val name: String
+    val names: List<String>
 
     /**
      * This represents, if the command needs admin powers.

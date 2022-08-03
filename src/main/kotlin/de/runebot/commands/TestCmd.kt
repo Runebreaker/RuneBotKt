@@ -7,8 +7,8 @@ import kotlin.random.Random
 
 object TestCmd : MessageCommand
 {
-    override val name: String
-        get() = "test"
+    override val names: List<String>
+        get() = listOf("test")
 
     override fun prepare(kord: Kord)
     {

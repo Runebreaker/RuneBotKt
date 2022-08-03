@@ -6,8 +6,8 @@ import dev.kord.core.event.message.MessageCreateEvent
 
 object ConfigCommand : MessageCommand
 {
-    override val name: String
-        get() = "config"
+    override val names: List<String>
+        get() = listOf("config")
 
     override val needsAdmin: Boolean
         get() = true

@@ -65,8 +65,8 @@ object RuneBot
             // add your MessageCommands here
             TestCmd,
             ConfigCommand
-        ).forEach {
-            messageCommands[it.name] = it
+        ).forEach { cmd ->
+            cmd.names.forEach { name -> messageCommands[name] = cmd }
         }
     }
 }
