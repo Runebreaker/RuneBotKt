@@ -23,6 +23,11 @@ object Util
         return stringBuilder.toString()
     }
 
+    suspend fun sendMessage(event: MessageCreateEvent, message: String)
+    {
+        event.message.channel.createMessage(message)
+    }
+
     suspend fun sendImage(channel: MessageChannelBehavior, path: Path)
     {
         sendImage(channel, path.fileName.toString(), withContext(Dispatchers.IO) {
