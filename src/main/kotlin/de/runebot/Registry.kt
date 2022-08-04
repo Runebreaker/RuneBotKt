@@ -11,6 +11,7 @@ object Registry
         TestBehavior,
         TechnikBehavior,
         FBehavior,
+        StyleBehavior,
     )
 
     val messageCommands = listOf<MessageCommand>(
