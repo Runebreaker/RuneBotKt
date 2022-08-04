@@ -40,6 +40,8 @@ object Registry
         val args = messageCreateEvent.message.content.split(" ")
         val commandMaybe = args.getOrNull(0) ?: return
         if (!commandMaybe.startsWith(MessageCommand.prefix)) return
-        commandMap[commandMaybe.removePrefix(MessageCommand.prefix)]?.execute(messageCreateEvent, args) ?: return
+        val command = commandMap[commandMaybe.removePrefix(MessageCommand.prefix)] ?: return
+        if (command.needsAdmin && !MessageCommand.isAdmin(messageCreateEvent)) return
+        command.execute(messageCreateEvent, args)
     }
 }
