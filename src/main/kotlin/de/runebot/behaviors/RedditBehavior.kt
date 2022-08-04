@@ -14,6 +14,6 @@ object RedditBehavior : Behavior
             if (index != 0) responseSB.append("\n")
             responseSB.append("https://old.reddit.com/${matchResult.value}/")
         }
-        Util.sendMessage(messageCreateEvent, responseSB.toString())
+        if (responseSB.isNotBlank()) Util.sendMessage(messageCreateEvent, responseSB.toString())
     }
 }
