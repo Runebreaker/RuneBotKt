@@ -28,6 +28,11 @@ object Util
         event.message.channel.createMessage(message)
     }
 
+    suspend fun sendMessage(channel: MessageChannelBehavior, message: String)
+    {
+        channel.createMessage(message)
+    }
+
     suspend fun sendImage(channel: MessageChannelBehavior, path: Path)
     {
         sendImage(channel, path.fileName.toString(), withContext(Dispatchers.IO) {

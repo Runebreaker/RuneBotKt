@@ -3,9 +3,7 @@ package de.runebot
 import de.runebot.behaviors.Behavior
 import de.runebot.behaviors.FBehavior
 import de.runebot.behaviors.TestBehavior
-import de.runebot.commands.ConfigCommand
-import de.runebot.commands.MessageCommand
-import de.runebot.commands.TestCommand
+import de.runebot.commands.*
 import dev.kord.core.event.message.MessageCreateEvent
 
 object Registry
@@ -17,7 +15,9 @@ object Registry
 
     val messageCommands = listOf<MessageCommand>(
         ConfigCommand,
-        TestCommand
+        TestCommand,
+        AdminChannelCommand,
+        UsersCommand
     )
 
     val commandMap = mutableMapOf<String, MessageCommand>()
