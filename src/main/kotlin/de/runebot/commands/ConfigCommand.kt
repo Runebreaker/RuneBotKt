@@ -17,7 +17,7 @@ object ConfigCommand : MessageCommand
 
     }
 
-    override suspend fun execute(event: MessageCreateEvent, args: Array<String>)
+    override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
         if (args.getOrNull(1) == "get")
         {

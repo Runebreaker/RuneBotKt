@@ -46,5 +46,5 @@ interface MessageCommand
      * @param event MessageCreateEvent from which this method is called
      * @param args is the message word by word (split by " ")
      */
-    suspend fun execute(event: MessageCreateEvent, args: Array<String>)
+    suspend fun execute(event: MessageCreateEvent, args: List<String>)
 }
