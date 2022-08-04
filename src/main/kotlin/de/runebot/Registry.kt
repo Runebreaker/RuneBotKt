@@ -1,6 +1,7 @@
 package de.runebot
 
 import de.runebot.behaviors.Behavior
+import de.runebot.behaviors.FBehavior
 import de.runebot.behaviors.TestBehavior
 import de.runebot.commands.ConfigCommand
 import de.runebot.commands.MessageCommand
@@ -10,7 +11,8 @@ import dev.kord.core.event.message.MessageCreateEvent
 object Registry
 {
     val behaviors = listOf<Behavior>(
-        TestBehavior
+        TestBehavior,
+        FBehavior
     )
 
     val messageCommands = listOf<MessageCommand>(
