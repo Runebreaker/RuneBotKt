@@ -1,25 +1,23 @@
 package de.runebot
 
-import de.runebot.behaviors.Behavior
-import de.runebot.behaviors.FBehavior
-import de.runebot.behaviors.RedditBehavior
-import de.runebot.behaviors.TestBehavior
+import de.runebot.behaviors.*
 import de.runebot.commands.*
 import dev.kord.core.event.message.MessageCreateEvent
 
 object Registry
 {
     val behaviors = listOf<Behavior>(
+        RedditBehavior,
         TestBehavior,
+        TechnikBehavior,
         FBehavior,
-        RedditBehavior
     )
 
     val messageCommands = listOf<MessageCommand>(
         ConfigCommand,
         TestCommand,
         AdminChannelCommand,
-        UsersCommand
+        UsersCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommand>()
