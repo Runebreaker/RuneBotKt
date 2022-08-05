@@ -26,7 +26,7 @@ object TagCommand : MessageCommand
             Util.sendMessage(event, "Couldn't process request - Missing user ID")
             return
         }
-        if (args.size <= 1) Util.sendMessage(event, "Try >(${names.joinToString(" | ")}) help")
+        if (args.size <= 1) Util.sendMessage(event, "Try >(`${names.joinToString("` | `")}`) `help`")
         when (args[1])
         {
             "create" ->
