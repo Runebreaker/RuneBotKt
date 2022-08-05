@@ -4,6 +4,7 @@ import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import kotlin.io.path.Path
+import kotlin.time.Duration
 
 object DB
 {
@@ -18,6 +19,7 @@ object DB
         }
     }
 
+    //region Tags API
     /**
      * @return if insert is successful
      */
@@ -68,7 +70,7 @@ object DB
         try
         {
             return transaction {
-                val check = checkForCreatorAndEntry(name, creator)
+                val check = checkForTagCreatorAndEntry(name, creator)
                 if (check != DBResponse.SUCCESS) return@transaction check
                 Tags.update({ (Tags.name eq name) and (Tags.creatorId eq creator) }) {
                     it[this.message] = message
@@ -109,7 +111,7 @@ object DB
         try
         {
             return transaction {
-                val check = checkForCreatorAndEntry(name, creator)
+                val check = checkForTagCreatorAndEntry(name, creator)
                 if (check != DBResponse.SUCCESS) return@transaction check
                 Tags.deleteWhere {
                     Tags.name eq name
@@ -138,7 +140,7 @@ object DB
         }
     }
 
-    private fun checkForCreatorAndEntry(name: String, creator: Long): DBResponse
+    private fun checkForTagCreatorAndEntry(name: String, creator: Long): DBResponse
     {
         Tags.select {
             Tags.name eq name
@@ -152,4 +154,165 @@ object DB
 
         return DBResponse.SUCCESS
     }
+    //endregion
+
+    //region Timer API
+    fun addTimer(duration: Duration, message: String, channelId: Long, messageId: Long): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.insert {
+                    it[this.targetTime] = System.currentTimeMillis() + duration.inWholeMilliseconds
+                    it[this.message] = message
+                    it[this.channelId] = channelId
+                    it[this.messageId] = messageId
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun removeAllTimers(): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.deleteAll()
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+    //endregion
+
+    //region Collection API
+    fun addToCollection(userId: Long, characterName: String, seriesName: String): DBResponse
+    {
+        try
+        {
+            return transaction {
+                UserCollections.insert {
+                    it[this.userId] = userId
+                    it[this.characterName] = characterName
+                    it[this.seriesName] = seriesName
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun removeFromCollection(userId: Long, characterName: String, seriesName: String): DBResponse
+    {
+        try
+        {
+            return transaction {
+                UserCollections.deleteWhere {
+                    (UserCollections.characterName eq characterName) and (UserCollections.seriesName eq seriesName)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun removeFromCollectionIfOwner(userId: Long, characterName: String, seriesName: String): DBResponse
+    {
+        try
+        {
+            return transaction {
+                val check = checkForCollectionCreatorAndEntry(userId, characterName, seriesName)
+                if (check != DBResponse.SUCCESS) return@transaction check
+                UserCollections.deleteWhere {
+                    (UserCollections.characterName eq characterName) and (UserCollections.seriesName eq seriesName)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getAllFromCollection(userId: Long): List<Pair<String, String>>
+    {
+        val totalResults = mutableListOf<Pair<String, String>>()
+        try
+        {
+            transaction {
+                UserCollections.select {
+                    UserCollections.userId eq userId
+                }.forEach { totalResults.add(Pair(it[UserCollections.characterName], it[UserCollections.seriesName])) }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+        }
+        return totalResults
+    }
+
+    fun searchCollectionsByCharacter(characterName: String): List<Pair<Long, String>>
+    {
+        val totalResults = mutableListOf<Pair<Long, String>>()
+        try
+        {
+            transaction {
+                UserCollections.select {
+                    UserCollections.characterName eq characterName
+                }.forEach { totalResults.add(Pair(it[UserCollections.userId], it[UserCollections.seriesName])) }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+        }
+        return totalResults
+    }
+
+    fun searchCollectionsBySeries(seriesName: String): List<Pair<Long, String>>
+    {
+        val totalResults = mutableListOf<Pair<Long, String>>()
+        try
+        {
+            transaction {
+                UserCollections.select {
+                    UserCollections.seriesName eq seriesName
+                }.forEach { totalResults.add(Pair(it[UserCollections.userId], it[UserCollections.characterName])) }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+        }
+        return totalResults
+    }
+
+    private fun checkForCollectionCreatorAndEntry(userId: Long, characterName: String, seriesName: String): DBResponse
+    {
+        UserCollections.select {
+            (UserCollections.characterName eq characterName) and (UserCollections.seriesName eq seriesName)
+        }.firstOrNull()?.let {
+            if (it[UserCollections.userId] != userId)
+            {
+                // IDs do not match
+                return DBResponse.WRONG_USER
+            }
+        } ?: return DBResponse.MISSING_ENTRY
+
+        return DBResponse.SUCCESS
+    }
+    //endregion
 }
