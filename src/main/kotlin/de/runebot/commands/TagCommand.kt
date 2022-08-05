@@ -26,11 +26,25 @@ object TagCommand : MessageCommand
             Util.sendMessage(event, "Couldn't process request - Missing user ID")
             return
         }
-        if (args.size <= 1) Util.sendMessage(event, "Try >(`${names.joinToString("` | `")}`) `help`")
+        if (args.size <= 1)
+        {
+            Util.sendMessage(event, "Try >(`${names.joinToString("` | `")}`) `help`")
+            return
+        }
         when (args[1])
         {
             "create" ->
             {
+                if (args.size <= 2)
+                {
+                    sendTag(event, args[1])
+                    return
+                }
+                else if (args.size <= 3)
+                {
+                    Util.sendMessage(event, "Cannot create empty tag.")
+                    return
+                }
                 val tagCreateResponse = DB.storeTag(
                     args[2],
                     args.subList(3, args.size).joinToString(" "),
@@ -54,6 +68,16 @@ object TagCommand : MessageCommand
             }
             "update" ->
             {
+                if (args.size <= 2)
+                {
+                    sendTag(event, args[1])
+                    return
+                }
+                else if (args.size <= 3)
+                {
+                    Util.sendMessage(event, "Cannot make tag empty.")
+                    return
+                }
                 val tagUpdateResponse = if (MessageCommand.isAdmin(event)) DB.updateTag(
                     args[2],
                     args.subList(3, args.size).joinToString(" "),
@@ -86,6 +110,11 @@ object TagCommand : MessageCommand
             }
             "delete" ->
             {
+                if (args.size <= 2)
+                {
+                    sendTag(event, args[1])
+                    return
+                }
                 val tagDeleteResponse = if (MessageCommand.isAdmin(event)) DB.deleteTag(
                     args[2]
                 )
@@ -120,13 +149,19 @@ object TagCommand : MessageCommand
                             "To display tags: >(`${names.joinToString("` | `")}`) (Tag name)\n" +
                             "To display this help section: >(`${names.joinToString("` | `")}`) (`help`)"
                 )
+                TODO("move this to helpText variable which will be added.")
             }
             else ->
             {
-                DB.getTag(args[1])?.let {
-                    Util.sendMessage(event, it)
-                } ?: Util.sendMessage(event, "Tag doesn't exist.")
+                sendTag(event, args[1])
             }
         }
+    }
+
+    private suspend fun sendTag(event: MessageCreateEvent, tagName: String)
+    {
+        DB.getTag(tagName)?.let {
+            Util.sendMessage(event, it)
+        } ?: Util.sendMessage(event, "Tag doesn't exist.")
     }
 }
