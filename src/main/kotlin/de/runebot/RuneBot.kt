@@ -5,35 +5,43 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 object RuneBot
 {
     val token = System.getenv()["BOT_TOKEN"] ?: error("error reading bot token")
+    var kord: Kord? = null
+        private set
 
     @JvmStatic
     fun main(args: Array<String>)
     {
-        runBlocking { bot() }
+        runBlocking {
+            launch { bot() }
+            launch { }
+        }
     }
 
     private suspend fun bot()
     {
-        val kord = Kord(token)
+        kord = Kord(token)
 
-        Registry.messageCommands.forEach { it.prepare(kord) }
+        kord?.let { kord ->
+            Registry.messageCommands.forEach { it.prepare(kord) }
 
-        kord.on<MessageCreateEvent> {
-            // return if author is a bot or undefined
-            if (message.author?.isBot != false) return@on
+            kord.on<MessageCreateEvent> {
+                // return if author is a bot or undefined
+                if (message.author?.isBot != false) return@on
 
-            Registry.handleMessageCommands(this)
-            Registry.handleBehaviors(this)
-        }
+                Registry.handleMessageCommands(this)
+                Registry.handleBehaviors(this)
+            }
 
-        kord.login {
-            @OptIn(PrivilegedIntent::class)
-            intents += Intent.MessageContent
+            kord.login {
+                @OptIn(PrivilegedIntent::class)
+                intents += Intent.MessageContent
+            }
         }
     }
 }
