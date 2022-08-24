@@ -17,6 +17,21 @@ import kotlin.random.Random
 
 object Util
 {
+    val connectors = mutableMapOf<String, Char>(
+        "L" to '─',
+        "R" to '─',
+        "U" to '│',
+        "D" to '│',
+        "UR" to '┌',
+        "RD" to '┐',
+        "DR" to '└',
+        "RU" to '┘',
+        "TR" to '├',
+        "TL" to '┤',
+        "TD" to '┬',
+        "TU" to '┴',
+    )
+
     fun String.randomizeCapitalization(): String
     {
         val stringBuilder = StringBuilder()
@@ -86,5 +101,84 @@ object Util
         }
 
         event.message.channel.createMessage { embeds.add(someEmbed) }
+    }
+
+    class StringTree(rootString: String)
+    {
+        companion object
+        {
+            lateinit var activeElement: TreeElement
+            var final: StringBuilder = StringBuilder()
+        }
+
+        init
+        {
+            activeElement = TreeElement(rootString)
+        }
+
+        private val tree = activeElement
+
+        fun getRoot(): TreeElement
+        {
+            return tree
+        }
+
+        fun getTree(): String = tree.toString()
+
+        class TreeElement(val content: String, private val parentElement: TreeElement? = null)
+        {
+            private val parent = parentElement
+            private val children = mutableListOf<TreeElement>()
+
+            fun addChild(string: String): TreeElement
+            {
+                val element = TreeElement(string, this)
+                children.add(element)
+                activeElement = element
+                return activeElement
+            }
+
+            fun moveUp(): TreeElement
+            {
+                activeElement = activeElement.parentElement ?: activeElement
+                return activeElement
+            }
+
+            fun moveToRoot(): TreeElement
+            {
+                while (activeElement.parent != null)
+                {
+                    moveUp()
+                }
+                return activeElement
+            }
+
+            private fun collectTree(depth: Int = 0)
+            {
+                children.forEach { child ->
+                    for (i in 0 until depth) final.append("${connectors["D"]}")
+                    if (children.last() == child) final.append("${connectors["DR"]}${child.content}${System.lineSeparator()}")
+                    else final.append("${connectors["TR"]}${child.content}${System.lineSeparator()}")
+                    child.collectTree(depth + 1)
+                }
+            }
+
+            fun getName(): String
+            {
+                return this.content
+            }
+
+            override fun toString(): String
+            {
+                final.append(System.lineSeparator())
+                final.append("${this.content}${System.lineSeparator()}")
+                collectTree()
+                final.insert(0, "```")
+                final.append("```")
+                val returnString = final.toString()
+                final.clear()
+                return returnString
+            }
+        }
     }
 }
