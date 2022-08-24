@@ -13,6 +13,7 @@ object Registry
         FBehavior,
         StyleBehavior,
         ListenBehavior,
+        LennyBehavior,
         DxDBehavior,
     )
 
