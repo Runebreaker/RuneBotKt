@@ -19,7 +19,7 @@ object RuneBot
     {
         runBlocking {
             launch { bot() }
-            launch { }
+            launch { Taskmaster.run() }
         }
     }
 
