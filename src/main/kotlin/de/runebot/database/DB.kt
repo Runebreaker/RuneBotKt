@@ -177,6 +177,204 @@ object DB
         }
     }
 
+    fun removeTimer(channelId: Long, messageId: Long): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.deleteWhere {
+                    (Timers.messageId eq messageId) and (Timers.channelId eq channelId)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getAllTimers(): List<TimerEntry>
+    {
+        try
+        {
+            return transaction {
+                return@transaction Timers.selectAll().map {
+                    TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
+    fun removeTimer(channelId: Long, messageId: Long): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.deleteWhere {
+                    (Timers.messageId eq messageId) and (Timers.channelId eq channelId)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getAllTimers(): List<TimerEntry>
+    {
+        try
+        {
+            return transaction {
+                return@transaction Timers.selectAll().map {
+                    TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
+    fun removeTimer(channelId: Long, messageId: Long): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.deleteWhere {
+                    (Timers.messageId eq messageId) and (Timers.channelId eq channelId)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getAllTimers(): List<TimerEntry>
+    {
+        try
+        {
+            return transaction {
+                return@transaction Timers.selectAll().map {
+                    TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
+    fun removeTimer(channelId: Long, messageId: Long): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.deleteWhere {
+                    (Timers.messageId eq messageId) and (Timers.channelId eq channelId)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getAllTimers(): List<TimerEntry>
+    {
+        try
+        {
+            return transaction {
+                return@transaction Timers.selectAll().map {
+                    TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
+    fun removeTimer(channelId: Long, messageId: Long): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.deleteWhere {
+                    (Timers.messageId eq messageId) and (Timers.channelId eq channelId)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getAllTimers(): List<TimerEntry>
+    {
+        try
+        {
+            return transaction {
+                return@transaction Timers.selectAll().map {
+                    TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
+    fun removeTimer(channelId: Long, messageId: Long): DBResponse
+    {
+        try
+        {
+            return transaction {
+                Timers.deleteWhere {
+                    (Timers.messageId eq messageId) and (Timers.channelId eq channelId)
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getAllTimers(): List<TimerEntry>
+    {
+        try
+        {
+            return transaction {
+                return@transaction Timers.selectAll().map {
+                    TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
     fun removeAllTimers(): DBResponse
     {
         try
@@ -191,6 +389,8 @@ object DB
             return DBResponse.FAILURE
         }
     }
+
+    data class TimerEntry(val targetTime: Long, val message: String, val channelId: Long, val messageId: Long)
     //endregion
 
     //region Collection API
