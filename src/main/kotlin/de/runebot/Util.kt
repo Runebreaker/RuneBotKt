@@ -3,6 +3,7 @@ package de.runebot
 import dev.kord.common.Color
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
+import dev.kord.core.entity.Message
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.NamedFile
 import dev.kord.rest.builder.message.EmbedBuilder
@@ -23,14 +24,14 @@ object Util
         return stringBuilder.toString()
     }
 
-    suspend fun sendMessage(event: MessageCreateEvent, message: String)
+    suspend fun sendMessage(event: MessageCreateEvent, message: String): Message
     {
-        event.message.channel.createMessage(message)
+        return event.message.channel.createMessage(message)
     }
 
-    suspend fun sendMessage(channel: MessageChannelBehavior, message: String)
+    suspend fun sendMessage(channel: MessageChannelBehavior, message: String): Message
     {
-        channel.createMessage(message)
+        return channel.createMessage(message)
     }
 
     suspend fun sendImage(channel: MessageChannelBehavior, path: Path)
