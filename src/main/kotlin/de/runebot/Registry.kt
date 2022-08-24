@@ -23,7 +23,8 @@ object Registry
         AdminChannelCommand,
         UsersCommand,
         TagCommand,
-        HelpCommand
+        HelpCommand,
+        IntelligentCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
