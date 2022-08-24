@@ -7,7 +7,7 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.event.message.MessageCreateEvent
 
-object AdminChannelCommand : MessageCommand
+object AdminChannelCommand : MessageCommandInterface
 {
     override val names: List<String>
         get() = listOf("adminchannel", "ac")

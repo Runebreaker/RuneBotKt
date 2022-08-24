@@ -4,7 +4,7 @@ import de.runebot.config.Config
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object ConfigCommand : MessageCommand
+object ConfigCommand : MessageCommandInterface
 {
     override val names: List<String>
         get() = listOf("config")

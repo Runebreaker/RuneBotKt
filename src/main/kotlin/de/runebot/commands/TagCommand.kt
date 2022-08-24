@@ -6,7 +6,7 @@ import de.runebot.database.DBResponse
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object TagCommand : MessageCommand
+object TagCommand : MessageCommandInterface
 {
     override val names: List<String>
         get() = listOf("tag", "t")
@@ -88,7 +88,7 @@ object TagCommand : MessageCommand
                     Util.sendMessage(event, "Cannot make tag empty.")
                     return
                 }
-                val tagUpdateResponse = if (MessageCommand.isAdmin(event)) DB.updateTag(
+                val tagUpdateResponse = if (MessageCommandInterface.isAdmin(event)) DB.updateTag(
                     args[2],
                     args.subList(3, args.size).joinToString(" "),
                     event.message.author?.id?.value?.toLong() ?: 0
@@ -129,7 +129,7 @@ object TagCommand : MessageCommand
                     sendTag(event, args[1])
                     return
                 }
-                val tagDeleteResponse = if (MessageCommand.isAdmin(event)) DB.deleteTag(
+                val tagDeleteResponse = if (MessageCommandInterface.isAdmin(event)) DB.deleteTag(
                     args[2]
                 )
                 else DB.deleteTagIfOwner(

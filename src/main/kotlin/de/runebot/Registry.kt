@@ -17,7 +17,7 @@ object Registry
         DxDBehavior,
     )
 
-    val messageCommands = listOf<MessageCommand>(
+    val messageCommands = listOf<MessageCommandInterface>(
         ConfigCommand,
         TestCommand,
         AdminChannelCommand,
@@ -26,7 +26,7 @@ object Registry
         HelpCommand
     )
 
-    val commandMap = mutableMapOf<String, MessageCommand>()
+    val commandMap = mutableMapOf<String, MessageCommandInterface>()
 
     init
     {
@@ -45,9 +45,9 @@ object Registry
     {
         val args = messageCreateEvent.message.content.split(" ")
         val commandMaybe = args.getOrNull(0) ?: return
-        if (!commandMaybe.startsWith(MessageCommand.prefix)) return
-        val command = commandMap[commandMaybe.removePrefix(MessageCommand.prefix)] ?: return
-        if (command.needsAdmin && !MessageCommand.isAdmin(messageCreateEvent)) return
+        if (!commandMaybe.startsWith(MessageCommandInterface.prefix)) return
+        val command = commandMap[commandMaybe.removePrefix(MessageCommandInterface.prefix)] ?: return
+        if (command.needsAdmin && !MessageCommandInterface.isAdmin(messageCreateEvent)) return
         command.execute(messageCreateEvent, args)
     }
 }
