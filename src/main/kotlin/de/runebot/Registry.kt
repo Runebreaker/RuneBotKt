@@ -25,6 +25,7 @@ object Registry
         TagCommand,
         HelpCommand,
         IntelligentCommand,
+        BonkCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
