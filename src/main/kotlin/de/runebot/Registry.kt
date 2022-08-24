@@ -23,6 +23,8 @@ object Registry
         AdminChannelCommand,
         UsersCommand,
         TagCommand,
+        ReminderCommand,
+        TagCommand,
         HelpCommand,
         IntelligentCommand,
         BonkCommand,
