@@ -9,7 +9,7 @@ import java.io.InputStreamReader
 object DxDBehavior : Behavior
 {
     val lines: List<String>
-    val jaroWinkler = JaroWinkler()
+    val comparator = JaroWinkler()
 
     init
     {
@@ -27,8 +27,9 @@ object DxDBehavior : Behavior
         val results = mutableListOf<String>()
 
         lines.forEachIndexed { index, s ->
-            if (jaroWinkler.similarity(s.lowercase(), content.lowercase()) > .75)
+            if (comparator.similarity(s.lowercase(), content.lowercase()) > .8)
             {
+                println("$s: ${comparator.similarity(s.lowercase(), content.lowercase())}")
                 results.add(lines.getOrNull(index + 1) ?: return@forEachIndexed)
             }
         }
