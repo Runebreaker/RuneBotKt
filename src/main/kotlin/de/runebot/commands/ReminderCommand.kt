@@ -13,10 +13,14 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-object ReminderCommand : MessageCommand
+object ReminderCommand : MessageCommandInterface
 {
     override val names: List<String>
         get() = listOf("reminder", "rem")
+    override val shortHelpText: String
+        get() = "reminds users for the specified reasons"
+    override val longHelpText: String
+        get() = "`$commandExample <seconds>s<minutes>m<hours>h<days>d`: Starts a timer for the specified time.\n"
     private val regex = Regex("\\d+[smhd]")
 
     override fun prepare(kord: Kord)
