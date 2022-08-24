@@ -17,7 +17,7 @@ object Config
     }
 
     private val config: ConfigEntries
-    private val pathToConfigFile: Path = Config::class.java.getResource("config.json")?.let { Path(it.path) } ?: Path("config.json") // resources is eh net gut
+    private val pathToConfigFile: Path = Path("config.json")
 
     init
     {

@@ -27,6 +27,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.38.2")
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
 
+    implementation("info.debatty:java-string-similarity:2.0.0")
 }
 
 tasks.test {
