@@ -24,13 +24,15 @@ object Util
         return stringBuilder.toString()
     }
 
-    suspend fun sendMessage(event: MessageCreateEvent, message: String): Message
+    suspend fun sendMessage(event: MessageCreateEvent, message: String): Message?
     {
+        if (message.isBlank()) return null
         return event.message.channel.createMessage(message)
     }
 
-    suspend fun sendMessage(channel: MessageChannelBehavior, message: String): Message
+    suspend fun sendMessage(channel: MessageChannelBehavior, message: String): Message?
     {
+        if (message.isBlank()) return null
         return channel.createMessage(message)
     }
 
