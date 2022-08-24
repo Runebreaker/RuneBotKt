@@ -11,6 +11,11 @@ object AdminChannelCommand : MessageCommand
 {
     override val names: List<String>
         get() = listOf("adminchannel", "ac")
+    override val shortHelpText: String
+        get() = "set/get admin channel"
+    override val longHelpText: String
+        get() = "`$commandExample`: Sends message to currently set admin channel.\n" +
+                "`$commandExample set`: Sets the current channel as admin channel."
     override val needsAdmin: Boolean
         get() = true
     private lateinit var kord: Kord

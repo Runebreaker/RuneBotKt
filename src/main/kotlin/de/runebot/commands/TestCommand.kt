@@ -7,6 +7,10 @@ object TestCommand : MessageCommand
 {
     override val names: List<String>
         get() = listOf("test")
+    override val shortHelpText: String
+        get() = "for testing"
+    override val longHelpText: String
+        get() = "`$commandExample`: do stuffs"
 
     override fun prepare(kord: Kord)
     {

@@ -8,6 +8,11 @@ object ConfigCommand : MessageCommand
 {
     override val names: List<String>
         get() = listOf("config")
+    override val shortHelpText: String
+        get() = "set/get config entries"
+    override val longHelpText: String
+        get() = "`$commandExample get key`: Gets stored config value for given key.\n" +
+                "`$commandExample set key value`: Sets config key to given value."
 
     override val needsAdmin: Boolean
         get() = true

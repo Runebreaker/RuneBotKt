@@ -31,6 +31,19 @@ interface MessageCommand
     val names: List<String>
 
     /**
+     * Short help text shown in command overview
+     */
+    val shortHelpText: String
+
+    /**
+     * Long help text shown for detailed help
+     */
+    val longHelpText: String
+
+    val commandExample: String
+        get() = "${prefix}${names.firstOrNull()}"
+
+    /**
      * This represents, if the command needs admin powers.
      */
     val needsAdmin: Boolean

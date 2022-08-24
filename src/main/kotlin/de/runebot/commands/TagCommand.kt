@@ -10,6 +10,13 @@ object TagCommand : MessageCommand
 {
     override val names: List<String>
         get() = listOf("tag", "t")
+    override val shortHelpText: String
+        get() = "create/get saved tags"
+    override val longHelpText: String
+        get() = "`$commandExample tagName`: Display tag.\n" +
+                "`$commandExample create tagName tagContent`: Create tag.\n" +
+                "`$commandExample update tagName tagContent`: Update tag.\n" +
+                "`$commandExample delete tagName`: Delete tag."
     private lateinit var kord: Kord
 
     override fun prepare(kord: Kord)
@@ -56,16 +63,19 @@ object TagCommand : MessageCommand
                     {
                         Util.sendMessage(event, "Tag successfully created.")
                     }
+
                     DBResponse.FAILURE ->
                     {
                         Util.sendMessage(event, "Tag could not be created.")
                     }
+
                     else ->
                     {
                         Util.sendMessage(event, "Something unexpected happened. Ping a RuneBot admin.")
                     }
                 }
             }
+
             "update" ->
             {
                 if (args.size <= 2)
@@ -94,20 +104,24 @@ object TagCommand : MessageCommand
                     {
                         Util.sendMessage(event, "Tag successfully updated.")
                     }
+
                     DBResponse.FAILURE ->
                     {
                         Util.sendMessage(event, "Tag could not be updated.")
                     }
+
                     DBResponse.WRONG_USER ->
                     {
                         Util.sendMessage(event, "You do not own this tag.")
                     }
+
                     DBResponse.MISSING_ENTRY ->
                     {
                         Util.sendMessage(event, "Tag doesn't exist.")
                     }
                 }
             }
+
             "delete" ->
             {
                 if (args.size <= 2)
@@ -128,29 +142,24 @@ object TagCommand : MessageCommand
                     {
                         Util.sendMessage(event, "Tag successfully deleted.")
                     }
+
                     DBResponse.FAILURE ->
                     {
                         Util.sendMessage(event, "Tag could not be deleted.")
                     }
+
                     DBResponse.WRONG_USER ->
                     {
                         Util.sendMessage(event, "You do not own this tag.")
                     }
+
                     DBResponse.MISSING_ENTRY ->
                     {
                         Util.sendMessage(event, "Tag doesn't exist.")
                     }
                 }
             }
-            "help" ->
-            {
-                Util.sendMessage(
-                    event, "Usage for tag command: >(`${names.joinToString("` | `")}`) (`create` | `update` | `delete`) (Tag name) <Tag content>\n" +
-                            "To display tags: >(`${names.joinToString("` | `")}`) (Tag name)\n" +
-                            "To display this help section: >(`${names.joinToString("` | `")}`) (`help`)"
-                )
-                TODO("move this to helpText variable which will be added.")
-            }
+
             else ->
             {
                 sendTag(event, args[1])

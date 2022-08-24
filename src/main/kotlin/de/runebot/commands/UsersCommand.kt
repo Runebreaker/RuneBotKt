@@ -11,6 +11,10 @@ object UsersCommand : MessageCommand
 {
     override val names: List<String>
         get() = listOf("users", "us")
+    override val shortHelpText: String
+        get() = "list registered users"
+    override val longHelpText: String
+        get() = "`$commandExample`: print registered users to admin channel"
     override val needsAdmin: Boolean
         get() = true
 

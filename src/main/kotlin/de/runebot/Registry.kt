@@ -21,7 +21,8 @@ object Registry
         TestCommand,
         AdminChannelCommand,
         UsersCommand,
-        TagCommand
+        TagCommand,
+        HelpCommand
     )
 
     val commandMap = mutableMapOf<String, MessageCommand>()
