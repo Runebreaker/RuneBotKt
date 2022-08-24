@@ -28,6 +28,7 @@ object Registry
         BonkCommand,
         EgalCommand,
         MockCommand,
+        ImpostorCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
