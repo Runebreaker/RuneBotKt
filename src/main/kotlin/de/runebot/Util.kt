@@ -127,8 +127,15 @@ object Util
 
         class TreeElement(val content: String, private val parentElement: TreeElement? = null)
         {
-            private val parent = parentElement
+            var parent = parentElement
             private val children = mutableListOf<TreeElement>()
+
+            fun addChild(element: TreeElement): TreeElement
+            {
+                children.add(element)
+                activeElement = element
+                return activeElement
+            }
 
             fun addChild(string: String): TreeElement
             {

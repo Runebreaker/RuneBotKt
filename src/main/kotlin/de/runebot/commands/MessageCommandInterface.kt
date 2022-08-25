@@ -1,5 +1,6 @@
 package de.runebot.commands
 
+import de.runebot.Util
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
@@ -60,4 +61,34 @@ interface MessageCommandInterface
      * @param args is the message word by word (split by " ")
      */
     suspend fun execute(event: MessageCreateEvent, args: List<String>)
+
+    data class CommandDescription(val names: List<String>, val description: Pair<String, String>)
+
+    data class Subcommand(
+        val commandDescription: CommandDescription,
+        val function: suspend (MessageCreateEvent, List<String>, List<String>) -> Unit = { event, args, path ->
+            Util.sendMessage(event, "Try >help $path ${args[0]}")
+        }, val subcommands: List<Subcommand>
+    )
+    {
+        suspend fun execute(event: MessageCreateEvent, args: List<String>, path: List<String>)
+        {
+            if (args.isEmpty()) function(event, args, path)
+            else subcommands.firstOrNull {
+                it.commandDescription.names.contains(args[0])
+            }?.execute(event, args.subList(1, args.size), listOf(path, listOf(args[0])).flatten()) ?: function(event, args, path)
+        }
+
+        fun toTree(): Util.StringTree.TreeElement
+        {
+            val content = if (this.commandDescription.description.second.isBlank()) this.commandDescription.description.first
+            else "${this.commandDescription.description.first} - ${this.commandDescription.description.second}"
+
+            val tree = Util.StringTree.TreeElement(content)
+            this.subcommands.map { com -> com.toTree() }.forEach {
+                tree.addChild(it).parent = tree
+            }
+            return tree
+        }
+    }
 }
