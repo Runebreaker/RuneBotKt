@@ -24,14 +24,13 @@ object Registry
         UsersCommand,
         TagCommand,
         ReminderCommand,
-        TagCommand,
         HelpCommand,
         IntelligentCommand,
         BonkCommand,
         EgalCommand,
         MockCommand,
         ImpostorCommand,
-        CollectionCommand,
+        CollectionCommand
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
