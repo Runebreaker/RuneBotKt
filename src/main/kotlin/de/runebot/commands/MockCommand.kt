@@ -23,7 +23,7 @@ object MockCommand : MessageCommandInterface
     {
         event.message.referencedMessage?.let { referencedMessage ->
             Util.sendMessage(event, referencedMessage.content.mockify())
-        } ?: Util.sendMessage(event, "`>help mock`") //TODO: mock last message
+        } ?: Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`") //TODO: mock last message
     }
 
     fun String.mockify(): String
