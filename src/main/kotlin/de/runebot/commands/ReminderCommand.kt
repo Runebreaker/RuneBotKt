@@ -15,12 +15,33 @@ import kotlin.time.Duration.Companion.seconds
 
 object ReminderCommand : MessageCommandInterface
 {
+    private val reminder = MessageCommandInterface.Subcommand(
+        MessageCommandInterface.CommandDescription(names, Pair("reminder <time> <message>", "After specified time, posts the given message and mentions the author and reactors.")),
+        { event, args, _ ->
+            // Extract time
+            val rawTime = regex.findAll(args[0], 0).map { result -> result.value }.toList()
+            val time = convertTimeToMillis(rawTime)
+
+            // DB Operation
+            val userMessage = if (args.size > 1) args.subList(1, args.size).joinToString(" ") else "You didn't set a message, but your timer expired!"
+            DB.addTimer(time, userMessage, event.message.channelId.value.toLong(), event.message.id.value.toLong())
+
+            // Taskmaster foo
+            Taskmaster.updateTimers()
+
+            // Response message foo
+            event.message.addReaction(ReactionEmoji.Unicode(Emojis.alarmClock.unicode))
+            Util.sendMessage(event, "Timer was set for ${rawTime.joinToString("")}. React, if you want to get pinged too as soon as the timer runs out!")
+        },
+        emptyList()
+    )
+
     override val names: List<String>
         get() = listOf("reminder", "rem")
     override val shortHelpText: String
         get() = "reminds users for the specified reasons"
     override val longHelpText: String
-        get() = "`$commandExample <seconds>s<minutes>m<hours>h<days>d`: Starts a timer for the specified time.\n"
+        get() = reminder.toTree().toString()
     private val regex = Regex("\\d+[smhd]")
 
     override fun prepare(kord: Kord)
@@ -34,12 +55,7 @@ object ReminderCommand : MessageCommandInterface
         {
             Util.sendMessage(event, "Please specify a time.")
         }
-        val rawTime = regex.findAll(args[1], 0).map { result -> result.value }.toList()
-        val time = convertTimeToMillis(rawTime)
-        DB.addTimer(time, args.subList(2, args.lastIndex + 1).joinToString(" "), event.message.channelId.value.toLong(), event.message.id.value.toLong())
-        Taskmaster.updateTimers()
-        event.message.addReaction(ReactionEmoji.Unicode(Emojis.alarmClock.unicode))
-        Util.sendMessage(event, "Timer was set for ${rawTime.joinToString("")}. React, if you want to get pinged too as soon as the timer runs out!")
+        if (names.contains(args[0].substring(1))) reminder.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
     }
 
     private fun convertTimeToMillis(timePieces: List<String>): Duration
@@ -49,22 +65,10 @@ object ReminderCommand : MessageCommandInterface
         {
             when (piece.last())
             {
-                's' ->
-                {
-                    totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().seconds)
-                }
-                'm' ->
-                {
-                    totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().minutes)
-                }
-                'h' ->
-                {
-                    totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().hours)
-                }
-                'd' ->
-                {
-                    totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().days)
-                }
+                's' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().seconds)
+                'm' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().minutes)
+                'h' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().hours)
+                'd' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().days)
             }
         }
         return totalDuration
