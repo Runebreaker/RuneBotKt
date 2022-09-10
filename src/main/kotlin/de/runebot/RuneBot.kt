@@ -34,8 +34,7 @@ object RuneBot
                 // return if author is a bot or undefined
                 if (message.author?.isBot != false) return@on
 
-                Registry.handleMessageCommands(this)
-                Registry.handleBehaviors(this)
+                if (!Registry.handleMessageCommands(this)) Registry.handleBehaviors(this)
             }
 
             kord.login {

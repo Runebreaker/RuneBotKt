@@ -49,13 +49,14 @@ object Registry
         behaviors.forEach { it.run(messageContent, messageCreateEvent) }
     }
 
-    suspend fun handleMessageCommands(messageCreateEvent: MessageCreateEvent)
+    suspend fun handleMessageCommands(messageCreateEvent: MessageCreateEvent): Boolean
     {
         val args = messageCreateEvent.message.content.split(" ")
-        val commandMaybe = args.getOrNull(0) ?: return
-        if (!commandMaybe.startsWith(MessageCommandInterface.prefix)) return
-        val command = commandMap[commandMaybe.removePrefix(MessageCommandInterface.prefix)] ?: return
-        if (command.needsAdmin && !MessageCommandInterface.isAdmin(messageCreateEvent)) return
+        val commandMaybe = args.getOrNull(0) ?: return false
+        if (!commandMaybe.startsWith(MessageCommandInterface.prefix)) return false
+        val command = commandMap[commandMaybe.removePrefix(MessageCommandInterface.prefix)] ?: return false
+        if (command.needsAdmin && !MessageCommandInterface.isAdmin(messageCreateEvent)) return false
         command.execute(messageCreateEvent, args)
+        return true
     }
 }
