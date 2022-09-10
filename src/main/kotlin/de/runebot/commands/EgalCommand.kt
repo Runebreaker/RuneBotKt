@@ -6,4 +6,6 @@ object EgalCommand : GifResponseCommand
         get() = listOf("egal")
     override val response: String
         get() = "https://giphy.com/gifs/vol2cat-oliver-egal-wendler-ZG5KTqutRAfZ6i5OVR"
+
+    // TODO: Convert this to tag
 }

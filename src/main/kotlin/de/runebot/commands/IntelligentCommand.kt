@@ -6,4 +6,6 @@ object IntelligentCommand : GifResponseCommand
         get() = listOf("intelligent")
     override val response: String
         get() = "https://tenor.com/view/buzz-lightyear-no-sign-of-intelligent-life-dumb-toy-story-gif-11489315"
+
+    // TODO: Convert this to tag
 }
