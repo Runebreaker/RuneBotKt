@@ -1,10 +1,13 @@
 package de.runebot
 
 import dev.kord.common.Color
+import dev.kord.common.entity.Snowflake
+import dev.kord.common.exception.RequestException
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.entity.Message
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.core.exception.EntityNotFoundException
 import dev.kord.rest.NamedFile
 import dev.kord.rest.builder.message.EmbedBuilder
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +20,9 @@ import kotlin.random.Random
 
 object Util
 {
-    val connectors = mutableMapOf<String, Char>(
+    //region Constants
+
+    private val connectors = mutableMapOf(
         "L" to '─',
         "R" to '─',
         "U" to '│',
@@ -31,6 +36,10 @@ object Util
         "TD" to '┬',
         "TU" to '┴',
     )
+
+    private val messageLinkPattern = Regex("https:\\/\\/discord.com\\/channels(\\/\\d+){3}")
+
+    //endregion
 
     fun String.randomizeCapitalization(): String
     {
@@ -49,6 +58,41 @@ object Util
     {
         if (message.isBlank()) return null
         return channel.createMessage(message)
+    }
+
+    /**
+     * Gets the message of the specified id in given channel. Sends error messages when certain exceptions are thrown.
+     * @return The Message object, if found or null otherwise.
+     */
+    suspend fun getMessageById(channel: MessageChannelBehavior, id: Long): Message?
+    {
+        try
+        {
+            return channel.getMessage(Snowflake(id))
+        } catch (e: Exception)
+        {
+            if (e is RequestException) sendMessage(channel, "Something went wrong (probably with the Discord API). Ping my creator if you think this is wrong.")
+            if (e is EntityNotFoundException) sendMessage(channel, "Message not found.")
+        }
+        return null
+    }
+
+    /**
+     * Gets the message of the specified id in given channel. Sends error messages when certain exceptions are thrown.
+     * @return The Message object, if found or null otherwise.
+     */
+    suspend fun getMessageById(event: MessageCreateEvent, id: Long): Message?
+    {
+        return getMessageById(event.message.channel, id)
+    }
+
+    /**
+     * Extracts a message link from the string if possible.
+     * @return Returns the message link if found or null otherwise.
+     */
+    fun extractMessageLink(input: String): String?
+    {
+        messageLinkPattern.find(input)?.let { return it.value } ?: return null
     }
 
     suspend fun sendImage(channel: MessageChannelBehavior, path: Path)
