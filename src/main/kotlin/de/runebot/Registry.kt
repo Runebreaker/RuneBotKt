@@ -31,7 +31,8 @@ object Registry
         MockCommand,
         ImpostorCommand,
         CollectionCommand,
-        RolepingCommand
+        RolepingCommand,
+        NumbersCommand
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
@@ -55,7 +56,16 @@ object Registry
         val commandMaybe = args.getOrNull(0) ?: return false
         if (!commandMaybe.startsWith(MessageCommandInterface.prefix)) return false
         val command = commandMap[commandMaybe.removePrefix(MessageCommandInterface.prefix)] ?: return false
-        if (command.needsAdmin && !MessageCommandInterface.isAdmin(messageCreateEvent)) return false
+        if (command.needsAdmin && !MessageCommandInterface.isAdmin(messageCreateEvent))
+        {
+            Util.sendMessage(messageCreateEvent, "Only gods may possess such power. You are not worthy.")
+            return false
+        }
+        if (command.isNsfw && !MessageCommandInterface.isNsfw(messageCreateEvent))
+        {
+            Util.sendMessage(messageCreateEvent, "Gosh, do that somewhere else you pervert.")
+            return false
+        }
         command.execute(messageCreateEvent, args)
         return true
     }
