@@ -24,6 +24,11 @@ interface MessageCommandInterface
             }
             return valid
         }
+
+        suspend fun isNsfw(event: MessageCreateEvent): Boolean
+        {
+            return event.message.channel.fetchChannel().data.nsfw.discordBoolean
+        }
     }
 
     /**
@@ -48,6 +53,12 @@ interface MessageCommandInterface
      * This represents, if the command needs admin powers.
      */
     val needsAdmin: Boolean
+        get() = false
+
+    /**
+     * This represents, if the command needs to be executed in a channel marked NSFW.
+     */
+    val isNsfw: Boolean
         get() = false
 
     /**
