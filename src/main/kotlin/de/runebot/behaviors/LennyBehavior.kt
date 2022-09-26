@@ -7,7 +7,7 @@ object LennyBehavior : Behavior
 {
     override suspend fun run(content: String, messageCreateEvent: MessageCreateEvent)
     {
-        if ("lenny" in content)
+        if ("lenny" in content.lowercase())
         {
             Util.sendMessage(messageCreateEvent, "( ͡° ͜ʖ ͡°)")
         }
