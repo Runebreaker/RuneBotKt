@@ -13,7 +13,10 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
+import java.io.FileOutputStream
 import java.io.InputStream
+import java.net.URL
+import java.nio.channels.Channels
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.random.Random
@@ -105,6 +108,17 @@ object Util
     suspend fun sendImage(channel: MessageChannelBehavior, fileName: String, inputStream: InputStream)
     {
         channel.createMessage { this.files.add(NamedFile(fileName, inputStream)) }
+    }
+
+    fun downloadFromUrl(url: URL, outputName: String)
+    {
+        url.openStream().use {
+            Channels.newChannel(it).use { rbc ->
+                FileOutputStream(outputName).use { fos ->
+                    fos.channel.transferFrom(rbc, 0, Long.MAX_VALUE)
+                }
+            }
+        }
     }
 
 
