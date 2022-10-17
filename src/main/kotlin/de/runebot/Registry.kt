@@ -15,6 +15,7 @@ object Registry
         ListenBehavior,
         LennyBehavior,
         DxDBehavior,
+        DoggoBehaviour
     )
 
     val messageCommands = listOf<MessageCommandInterface>(
