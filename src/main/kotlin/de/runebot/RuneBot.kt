@@ -5,11 +5,15 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 object RuneBot
 {
+    val scope: CoroutineScope = CoroutineScope(SupervisorJob())
+
     val token = System.getenv()["BOT_TOKEN"] ?: error("error reading bot token")
     var kord: Kord? = null
         private set
