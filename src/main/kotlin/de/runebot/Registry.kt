@@ -32,7 +32,7 @@ object Registry
         ImpostorCommand,
         CollectionCommand,
         RolepingCommand,
-        NumbersCommand
+        NumbersCommand,
         WhatCommand,
     )
 
