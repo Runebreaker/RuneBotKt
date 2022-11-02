@@ -28,6 +28,10 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.36.0.3")
 
     implementation("info.debatty:java-string-similarity:2.0.0")
+
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.8.3")
+    implementation("com.twelvemonkeys.imageio:imageio-core:3.8.3")
+
     implementation("org.jsoup:jsoup:1.15.3")
     implementation("org.jclarion:image4j:0.7")
 }

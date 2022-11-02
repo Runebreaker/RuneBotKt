@@ -33,7 +33,8 @@ object Registry
         ImpostorCommand,
         CollectionCommand,
         RolepingCommand,
-        NumbersCommand
+        NumbersCommand,
+        WhatCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()

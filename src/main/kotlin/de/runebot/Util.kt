@@ -14,11 +14,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import java.io.FileOutputStream
+import java.awt.image.BufferedImage
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.URL
 import java.nio.channels.Channels
 import java.nio.file.Files
 import java.nio.file.Path
+import javax.imageio.ImageIO
 import kotlin.random.Random
 
 object Util
@@ -121,6 +125,15 @@ object Util
         }
     }
 
+    suspend fun sendImage(channel: MessageChannelBehavior, fileName: String, bufferedImage: BufferedImage)
+    {
+        val outputStream = ByteArrayOutputStream()
+        withContext(Dispatchers.IO) {
+            ImageIO.write(bufferedImage, "png", outputStream)
+        }
+        val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+        sendImage(channel, fileName, inputStream)
+    }
 
     // bullshittery begins here
     suspend fun sendHero(event: MessageCreateEvent)
