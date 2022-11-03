@@ -112,7 +112,6 @@ object WhatCommand : MessageCommandInterface
         }
 
         val actualResult = realResult.filter { !indexToShouldRemove.getValue(it.first) } // actually delete emojis that were determined to be deleted
-        println(actualResult)
         return actualResult.mapIndexed { index, pair -> index to pair.second }
     }
 
@@ -174,13 +173,6 @@ object WhatCommand : MessageCommandInterface
     fun unicodeEmojiToHex(emoji: String): List<String>
     {
         return emoji.codePoints().toList().map { it.toString(16) }
-    }
-
-    @JvmStatic
-    fun main(args: Array<String>)
-    {
-        loadCurrentEmojiList()
-        getPossibleAlternatives("#️⃣").map { getEmojiURL(it.fullEmoji) }.forEach { println(it) }
     }
 }
 
