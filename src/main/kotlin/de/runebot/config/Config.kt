@@ -1,5 +1,6 @@
 package de.runebot.config
 
+import de.runebot.commands.UwuifyCommand
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -35,10 +36,24 @@ object Config
         Files.writeString(pathToConfigFile, serializer.encodeToString(config))
     }
 
+    fun storeRule(key: String, value: String)
+    {
+        config.uwurules[key] = value
+        Files.writeString(pathToConfigFile, serializer.encodeToString(config))
+    }
+
     fun get(key: String): String? = config.values[key]
+
+    fun getRules(): List<UwuifyCommand.Rule>
+    {
+        return config.uwurules.map { entry ->
+            UwuifyCommand.Rule(entry.key, entry.value)
+        }
+    }
 }
 
 @Serializable
 class ConfigEntries(
-    val values: MutableMap<String, String> = mutableMapOf()
+    val values: MutableMap<String, String> = mutableMapOf(),
+    val uwurules: MutableMap<String, String> = mutableMapOf()
 )
