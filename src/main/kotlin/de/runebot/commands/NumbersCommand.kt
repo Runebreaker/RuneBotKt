@@ -66,8 +66,8 @@ object NumbersCommand : MessageCommandInterface
         get() = true
     private lateinit var kord: Kord
 
-    private val doujinDirectory = Path("C:/Programming Projects/runebotkt/src/main/resources/doujins/")
-    private val iconDirectory = Path("C:/Programming Projects/runebotkt/src/main/resources/icons/")
+    private val doujinDirectory = Path("doujins/")
+    private val iconDirectory = Path("icons/")
     private val doujins = mutableMapOf<Int, Doujin>()
     private const val siteUrl = "https://nhentai.to/"
     private const val iconUrl = "${siteUrl}/favicon.ico"
@@ -387,12 +387,14 @@ object NumbersCommand : MessageCommandInterface
             }
 
             // Cache Images -> keep for 1 week or so?
+            if (!Files.isDirectory(Path("$doujinDirectory"))) Files.createDirectory(Path("$doujinDirectory"))
             if (!Files.isDirectory(Path("${doujinDirectory}/Doujin$number"))) Files.createDirectory(Path("${doujinDirectory}/Doujin$number"))
             val thumbnailImageAddress = getElementById("cover")?.firstElementChild()?.firstElementChild()?.attr("src")
             var downloadIndex = 0
             downloadDoujinImages(URL(thumbnailImageAddress), number, downloadIndex++)
             getElementsByClass("thumb-container").forEach { pageElement ->
                 pageElement.firstElementChild()?.firstElementChild()?.let { imageElement ->
+                    println("Downloading page ${downloadIndex + 1} of ${data.page_number}")
                     downloadDoujinImages(URL(imageElement.attr("data-src")), number, downloadIndex++)
                 }
             }
@@ -408,6 +410,7 @@ object NumbersCommand : MessageCommandInterface
 
     private fun prepareSiteIcon()
     {
+        if (!Files.isDirectory(iconDirectory)) Files.createDirectory(iconDirectory)
         Files.deleteIfExists(Path(iconPath))
         Files.deleteIfExists(Path(iconPathProcessed))
         Util.downloadFromUrl(URL(iconUrl), iconPath)
