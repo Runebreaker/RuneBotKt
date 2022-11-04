@@ -1,5 +1,13 @@
 {
   "values": {
     "adminChannel": "914823972481302548"
+  },
+  "uwurules": {
+    "[lr]": "w",
+    "[LR]": "W",
+    "This": "Tis",
+    "The": "Te",
+    "this": "tis",
+    "the": "te"
   }
 }
