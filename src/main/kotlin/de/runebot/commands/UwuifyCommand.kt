@@ -9,7 +9,7 @@ import kotlin.math.tanh
 
 object UwuifyCommand : MessageCommandInterface
 {
-    val uwuify = MessageCommandInterface.Subcommand(
+    private val uwuify = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(names, Pair("uwu ( <input> | reply )", shortHelpText)),
         { event, args, _ ->
             if (event.message.type == MessageType.Reply)
