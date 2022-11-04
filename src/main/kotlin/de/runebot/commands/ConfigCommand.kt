@@ -38,5 +38,13 @@ object ConfigCommand : MessageCommandInterface
             event.message.channel.createMessage("`$key` is set to `${Config.get(key)}`")
             return
         }
+        if (args.getOrNull(1) == "rule")
+        {
+            val key = args.getOrNull(2) ?: return
+            val value = args.getOrNull(3) ?: return
+            Config.storeRule(key, value)
+            event.message.channel.createMessage("Rule made.")
+            return
+        }
     }
 }
