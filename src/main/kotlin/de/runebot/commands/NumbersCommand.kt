@@ -136,14 +136,16 @@ object NumbersCommand : MessageCommandInterface
                 style = if (index == 0) ButtonStyle.Secondary else ButtonStyle.Success,
                 customId = "left",
                 builder = {
-                    emoji = DiscordPartialEmoji(name = ReactionEmoji.Unicode(Emojis.pointLeft.unicode).name)
+                    emoji = if (index == 0) DiscordPartialEmoji(name = ReactionEmoji.Unicode(Emojis.noEntrySign.unicode).name)
+                    else DiscordPartialEmoji(name = ReactionEmoji.Unicode(Emojis.pointLeft.unicode).name)
                 }
             )
             interactionButton(
                 style = if (index == lastIndex) ButtonStyle.Secondary else ButtonStyle.Success,
                 customId = "right",
                 builder = {
-                    emoji = DiscordPartialEmoji(name = ReactionEmoji.Unicode(Emojis.pointRight.unicode).name)
+                    emoji = if (index == lastIndex) DiscordPartialEmoji(name = ReactionEmoji.Unicode(Emojis.noEntrySign.unicode).name)
+                    else DiscordPartialEmoji(name = ReactionEmoji.Unicode(Emojis.pointRight.unicode).name)
                 }
             )
         }
