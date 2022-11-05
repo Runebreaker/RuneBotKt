@@ -396,7 +396,7 @@ object NumbersCommand : MessageCommandInterface
             downloadDoujinImages(URL(thumbnailImageAddress), number, downloadIndex++)
             getElementsByClass("thumb-container").forEach { pageElement ->
                 pageElement.firstElementChild()?.firstElementChild()?.let { imageElement ->
-                    println("Downloading page ${downloadIndex + 1} of ${data.page_number}")
+                    println("Downloading page $downloadIndex of ${data.page_number}")
                     downloadDoujinImages(URL(imageElement.attr("data-src")), number, downloadIndex++)
                 }
             }
