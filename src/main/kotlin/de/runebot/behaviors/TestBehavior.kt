@@ -8,7 +8,7 @@ object TestBehavior : Behavior
     {
         if (content.contains("test", ignoreCase = true))
         {
-            messageCreateEvent.message.channel.createMessage("ECHO")
+            messageCreateEvent.message.channel.createMessage("EKO FRESH")
         }
     }
 }
