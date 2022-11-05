@@ -27,15 +27,15 @@ object ConfigCommand : MessageCommandInterface
         if (args.getOrNull(1) == "get")
         {
             val key = args.getOrNull(2) ?: return
-            event.message.channel.createMessage("`$key` is set to `${Config.get(key)}`")
+            event.message.channel.createMessage("`$key` is set to `${Config.getValue(key)}`")
             return
         }
         if (args.getOrNull(1) == "set")
         {
             val key = args.getOrNull(2) ?: return
             val value = args.getOrNull(3) ?: ""
-            Config.store(key, value)
-            event.message.channel.createMessage("`$key` is set to `${Config.get(key)}`")
+            Config.storeValue(key, value)
+            event.message.channel.createMessage("`$key` is set to `${Config.getValue(key)}`")
             return
         }
         if (args.getOrNull(1) == "rule")

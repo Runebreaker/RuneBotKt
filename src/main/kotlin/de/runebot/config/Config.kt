@@ -17,22 +17,34 @@ object Config
         encodeDefaults = true
     }
 
-    private val config: ConfigEntries
+    private val config: ConfigStructure
     private val pathToConfigFile: Path = Path("config.json")
+
+    private val defaultConfig = ConfigStructure(
+        keyValueStorage = mutableMapOf(),
+        uwurules = mutableMapOf(
+            "[lr]" to "w",
+            "[LR]" to "W",
+            "This" to "Tis",
+            "The" to "Te",
+            "this" to "tis",
+            "the" to "te"
+        )
+    )
 
     init
     {
         if (!Files.exists(pathToConfigFile))
         {
             Files.createFile(pathToConfigFile)
-            Files.writeString(pathToConfigFile, serializer.encodeToString(ConfigEntries()))
+            Files.writeString(pathToConfigFile, serializer.encodeToString(defaultConfig))
         }
         config = serializer.decodeFromString(pathToConfigFile.toFile().readText())
     }
 
-    fun store(key: String, value: String)
+    fun storeValue(key: String, value: String)
     {
-        config.values[key] = value
+        config.keyValueStorage[key] = value
         Files.writeString(pathToConfigFile, serializer.encodeToString(config))
     }
 
@@ -42,7 +54,7 @@ object Config
         Files.writeString(pathToConfigFile, serializer.encodeToString(config))
     }
 
-    fun get(key: String): String? = config.values[key]
+    fun getValue(key: String): String? = config.keyValueStorage[key]
 
     fun getRules(): List<UwuifyCommand.Rule>
     {
@@ -53,7 +65,7 @@ object Config
 }
 
 @Serializable
-class ConfigEntries(
-    val values: MutableMap<String, String> = mutableMapOf(),
+class ConfigStructure(
+    val keyValueStorage: MutableMap<String, String> = mutableMapOf(),
     val uwurules: MutableMap<String, String> = mutableMapOf()
 )

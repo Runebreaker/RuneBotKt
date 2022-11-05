@@ -28,7 +28,7 @@ object UsersCommand : MessageCommandInterface
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
-        Config.get("adminChannel")?.let { channelID ->
+        Config.getValue("adminChannel")?.let { channelID ->
             val users = StringBuilder()
             event.getGuild()?.let { guild ->
                 users.append("Users on ${guild.name}")
