@@ -70,7 +70,6 @@ object RolepingCommand : MessageCommandInterface
     override fun prepare(kord: Kord)
     {
         this.kord = kord
-        println("Roleping Command ready.")
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)

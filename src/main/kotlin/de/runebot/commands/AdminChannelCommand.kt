@@ -42,7 +42,6 @@ object AdminChannelCommand : MessageCommandInterface
     override fun prepare(kord: Kord)
     {
         this.kord = kord
-        println("Set admin channel command ready.")
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)

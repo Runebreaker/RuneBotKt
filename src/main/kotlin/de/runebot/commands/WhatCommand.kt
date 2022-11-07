@@ -31,6 +31,7 @@ object WhatCommand : MessageCommandInterface
     override fun prepare(kord: Kord)
     {
         loadCurrentEmojiList()
+        println("Emojis loaded from https://www.unicode.org/Public/emoji/latest/emoji-test.txt")
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)

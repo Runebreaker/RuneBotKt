@@ -78,7 +78,6 @@ object TagCommand : MessageCommandInterface
     override fun prepare(kord: Kord)
     {
         this.kord = kord
-        println("Tag command ready.")
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)

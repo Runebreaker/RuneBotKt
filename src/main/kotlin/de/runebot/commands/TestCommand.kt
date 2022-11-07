@@ -14,7 +14,7 @@ object TestCommand : MessageCommandInterface
 
     override fun prepare(kord: Kord)
     {
-        println("test command prepared")
+
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)

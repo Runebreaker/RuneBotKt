@@ -46,7 +46,7 @@ object ReminderCommand : MessageCommandInterface
 
     override fun prepare(kord: Kord)
     {
-        println("Reminder command ready.")
+
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)

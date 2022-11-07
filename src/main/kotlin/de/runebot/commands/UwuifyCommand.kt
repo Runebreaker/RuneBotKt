@@ -39,7 +39,7 @@ object UwuifyCommand : MessageCommandInterface
 
     override fun prepare(kord: Kord)
     {
-        println("The UWU is ready...")
+
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)

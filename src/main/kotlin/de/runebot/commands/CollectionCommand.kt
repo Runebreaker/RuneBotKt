@@ -100,7 +100,7 @@ object CollectionCommand : MessageCommandInterface
 
     override fun prepare(kord: Kord)
     {
-        println("Collection command ready.")
+
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
