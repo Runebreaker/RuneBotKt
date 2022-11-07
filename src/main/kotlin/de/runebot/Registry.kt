@@ -36,6 +36,7 @@ object Registry
         NumbersCommand,
         WhatCommand,
         UwuifyCommand,
+        AnilistCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
