@@ -2,6 +2,8 @@ package de.runebot.commands
 
 import de.runebot.Util
 import de.runebot.database.DB
+import de.runebot.database.DBResponse
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.coroutines.flow.map
@@ -14,17 +16,38 @@ object CollectionCommand : MessageCommandInterface
         subcommands = listOf(
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Adds series to collection.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.addToCollection(it, "All characters", args[0]) } },
+                { event, args, _ ->
+                    event.message.author?.id?.value?.toLong()?.let {
+                        if (DB.addToCollection(it, "All characters", args[0]) == DBResponse.SUCCESS)
+                        {
+                            Util.sendMessage(event, "Added series ${args[0]} to your collection.")
+                        }
+                    }
+                },
                 listOf()
             ),
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Adds character to collection.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.addToCollection(it, args[0], "None") } },
+                { event, args, _ ->
+                    event.message.author?.id?.value?.toLong()?.let {
+                        if (DB.addToCollection(it, args[0], "None") == DBResponse.SUCCESS)
+                        {
+                            Util.sendMessage(event, "Added character ${args[0]} to your collection.")
+                        }
+                    }
+                },
                 listOf()
             ),
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("combo", "co"), Pair("combo <character name> <series name>", "Adds combo to collection.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.addToCollection(it, args[0], args[1]) } },
+                { event, args, _ ->
+                    event.message.author?.id?.value?.toLong()?.let {
+                        if (DB.addToCollection(it, args[0], args[1]) == DBResponse.SUCCESS)
+                        {
+                            Util.sendMessage(event, "Added character ${args[0]} from series ${args[1]} to your collection.")
+                        }
+                    }
+                },
                 listOf()
             )
         )
@@ -35,17 +58,38 @@ object CollectionCommand : MessageCommandInterface
         subcommands = listOf(
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Removes series from collection.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.removeFromCollection(it, "All characters", args[0]) } },
+                { event, args, _ ->
+                    event.message.author?.id?.value?.toLong()?.let {
+                        if (DB.removeFromCollection(it, "All characters", args[0]) == DBResponse.SUCCESS)
+                        {
+                            Util.sendMessage(event, "Removed series ${args[0]} from your collection.")
+                        }
+                    }
+                },
                 listOf()
             ),
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Removes character from collection.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.removeFromCollection(it, args[0], "None") } },
+                { event, args, _ ->
+                    event.message.author?.id?.value?.toLong()?.let {
+                        if (DB.removeFromCollection(it, args[0], "None") == DBResponse.SUCCESS)
+                        {
+                            Util.sendMessage(event, "Removed character ${args[0]} from your collection.")
+                        }
+                    }
+                },
                 listOf()
             ),
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("combo", "co"), Pair("combo <character name> <series name>", "Removes combo from collection.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.removeFromCollection(it, args[0], args[1]) } },
+                { event, args, _ ->
+                    event.message.author?.id?.value?.toLong()?.let {
+                        if (DB.removeFromCollection(it, args[0], args[1]) == DBResponse.SUCCESS)
+                        {
+                            Util.sendMessage(event, "Removed character ${args[0]} from series ${args[1]} from your collection.")
+                        }
+                    }
+                },
                 listOf()
             )
         )
@@ -56,12 +100,38 @@ object CollectionCommand : MessageCommandInterface
         subcommands = listOf(
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Tells, which users collect the specified series.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.searchCollectionsBySeries(args[0]) } },
+                { event, args, _ ->
+                    val foundCollections: MutableMap<Long, MutableList<String>> = mutableMapOf()
+                    DB.searchCollectionsBySeries(args[0]).forEach {
+                        foundCollections.getOrPut(it.first) { mutableListOf() }.add(it.second)
+                    }
+                    val bobTheStringBuilder = StringBuilder("Following matches were found:${System.lineSeparator()}")
+                    foundCollections.forEach { map ->
+                        bobTheStringBuilder.append("\t> ${kord.getUser(Snowflake(map.key))?.username ?: "Unknown user"}${System.lineSeparator()}")
+                        map.value.forEach {
+                            bobTheStringBuilder.append("\t\t- $it${System.lineSeparator()}")
+                        }
+                    }
+                    Util.sendMessage(event, bobTheStringBuilder.toString())
+                },
                 listOf()
             ),
             MessageCommandInterface.Subcommand(
                 MessageCommandInterface.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Tells, which users collect the specified character.")),
-                { event, args, _ -> event.message.author?.id?.value?.toLong()?.let { DB.searchCollectionsByCharacter(args[0]) } },
+                { event, args, _ ->
+                    val foundCollections: MutableMap<Long, MutableList<String>> = mutableMapOf()
+                    DB.searchCollectionsByCharacter(args[0]).forEach {
+                        foundCollections.getOrPut(it.first) { mutableListOf() }.add(it.second)
+                    }
+                    val bobTheStringBuilder = StringBuilder("Following matches were found:${System.lineSeparator()}")
+                    foundCollections.forEach { map ->
+                        bobTheStringBuilder.append("\t> ${kord.getUser(Snowflake(map.key))?.username ?: "Unknown user"}${System.lineSeparator()}")
+                        map.value.forEach {
+                            bobTheStringBuilder.append("\t\t- $it${System.lineSeparator()}")
+                        }
+                    }
+                    Util.sendMessage(event, bobTheStringBuilder.toString())
+                },
                 listOf()
             )
         )
@@ -70,13 +140,33 @@ object CollectionCommand : MessageCommandInterface
     private val show: MessageCommandInterface.Subcommand = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("show", "s"), Pair("show <mention>", "Shows the collection of specified user.")),
         { event, args, _ ->
-            Util.sendMessage(event, event.message.mentionedUsers.map { user ->
-                val finalString = StringBuilder("Collection of ${user.username}:${System.lineSeparator()}")
-                finalString.append(DB.getAllFromCollection(user.id.value.toLong()).joinToString(System.lineSeparator()) {
-                    "${it.first} from ${it.second}"
-                })
-                finalString.toString()
-            }.toList().joinToString(System.lineSeparator()))
+            if (event.message.mentionedUsers.toList().isEmpty())
+            {
+                event.message.author?.let { author ->
+                    val finalString = StringBuilder("Collection of ${author.username}:${System.lineSeparator()}")
+                    finalString.append(DB.getAllFromCollection(author.id.value.toLong()).joinToString(System.lineSeparator()) {
+                        "${it.first} from ${it.second}"
+                    })
+                    finalString.toString()
+                }
+            }
+            Util.sendMessage(event, event.message.mentionedUsers.let { flow ->
+                if (flow.toList().isEmpty() && event.message.author == null) "No valid users found."
+                else if (flow.toList().isEmpty() && event.message.author != null) event.message.author?.let { user ->
+                    val finalString = StringBuilder("Collection of ${user.username}:${System.lineSeparator()}")
+                    finalString.append(DB.getAllFromCollection(user.id.value.toLong()).joinToString(System.lineSeparator()) {
+                        "${it.first} from ${it.second}"
+                    })
+                    finalString.toString()
+                } ?: "This should not happen! (CollectionCommand.kt, ln. 162)"
+                else flow.map { user ->
+                    val finalString = StringBuilder("Collection of ${user.username}:${System.lineSeparator()}")
+                    finalString.append(DB.getAllFromCollection(user.id.value.toLong()).joinToString(System.lineSeparator()) {
+                        "${it.first} from ${it.second}"
+                    })
+                    finalString.toString()
+                }.toList().joinToString(System.lineSeparator())
+            })
         },
         emptyList()
     )
@@ -97,10 +187,12 @@ object CollectionCommand : MessageCommandInterface
         get() = "collection functionality for use with mudae"
     override val longHelpText: String
         get() = collection.toTree().toString()
+    private lateinit var kord: Kord
 
     override fun prepare(kord: Kord)
     {
-
+        this.kord = kord
+        println("Collection command ready.")
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
