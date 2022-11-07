@@ -61,8 +61,6 @@ object UwuifyCommand : MessageCommandInterface
             result = ruleRegex.replace(result, wule.replace)
         }
 
-        println(uwuCounter)
-
         // tangent hyperbolicus curve to determine the percentage of uwu appendage
         val percent = (-UWU_PERCENT_BARRIER_MAX / 2.0) * tanh(input.length / 5.0 - 6.0) + UWU_PERCENT_BARRIER_MAX / 2.0
         if (uwuCounter.toDouble() / input.length.toDouble() <= percent)
