@@ -6,10 +6,10 @@ import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
-import java.net.URI
 
 
 object AnilistCommand : MessageCommandInterface
@@ -29,8 +29,12 @@ object AnilistCommand : MessageCommandInterface
             val response = client.send(request, HttpResponse.BodyHandlers.ofString())
             val result = serializer.decodeFromString<Root>(response.body())
             val bobTheStringBuilder = StringBuilder("Found results:\n")
-            result.data.Page.media.forEach {
-                bobTheStringBuilder.append(it.title.english + " // " + it.title.native + System.lineSeparator())
+            result.data.Page.media.forEach { media ->
+                media.title.english?.let { bobTheStringBuilder.append(it).append("//") }
+                media.title.native?.let { bobTheStringBuilder.append(it).append("//") }
+                media.title.romaji?.let { bobTheStringBuilder.append(it).append("//") }
+                bobTheStringBuilder.trim { it == '/' }
+                bobTheStringBuilder.append(System.lineSeparator())
             }
             Util.sendMessage(event, bobTheStringBuilder.toString())
         },
@@ -110,8 +114,8 @@ object AnilistCommand : MessageCommandInterface
     data class PageInfo(val currentPage: Int)
 
     @kotlinx.serialization.Serializable
-    data class Media(val id: Int, val title: MediaTitle, val genres: List<String>, val averageScore: Int, val meanScore: Int, val popularity: Int)
+    data class Media(val id: Int, val title: MediaTitle, val genres: List<String>?, val averageScore: Int?, val meanScore: Int?, val popularity: Int?)
 
     @kotlinx.serialization.Serializable
-    data class MediaTitle(val romaji: String, val english: String, val native: String)
+    data class MediaTitle(val romaji: String?, val english: String?, val native: String?)
 }
