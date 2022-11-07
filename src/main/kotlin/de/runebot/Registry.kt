@@ -8,7 +8,6 @@ object Registry
 {
     val behaviors = listOf<Behavior>(
         RedditBehavior,
-        TestBehavior,
         TechnikBehavior,
         FBehavior,
         StyleBehavior,
@@ -20,7 +19,6 @@ object Registry
 
     val messageCommands = listOf<MessageCommandInterface>(
         ConfigCommand,
-        TestCommand,
         AdminChannelCommand,
         UsersCommand,
         TagCommand,
