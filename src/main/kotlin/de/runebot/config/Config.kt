@@ -45,22 +45,42 @@ object Config
     fun storeValue(key: String, value: String)
     {
         config.keyValueStorage[key] = value
-        Files.writeString(pathToConfigFile, serializer.encodeToString(config))
+        saveToFile()
+    }
+
+    fun resetValue(key: String)
+    {
+        config.keyValueStorage.remove(key)
+        saveToFile()
+    }
+
+    fun getValue(key: String): String?
+    {
+        return config.keyValueStorage[key]
     }
 
     fun storeRule(key: String, value: String)
     {
         config.uwurules[key] = value
-        Files.writeString(pathToConfigFile, serializer.encodeToString(config))
+        saveToFile()
     }
 
-    fun getValue(key: String): String? = config.keyValueStorage[key]
+    fun resetRule(key: String)
+    {
+        config.uwurules.remove(key)
+        saveToFile()
+    }
 
     fun getRules(): List<UwuifyCommand.Rule>
     {
         return config.uwurules.map { entry ->
             UwuifyCommand.Rule(entry.key, entry.value)
         }
+    }
+
+    private fun saveToFile()
+    {
+        Files.writeString(pathToConfigFile, serializer.encodeToString(config))
     }
 }
 

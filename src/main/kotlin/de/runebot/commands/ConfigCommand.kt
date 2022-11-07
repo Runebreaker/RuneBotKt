@@ -9,10 +9,12 @@ object ConfigCommand : MessageCommandInterface
     override val names: List<String>
         get() = listOf("config")
     override val shortHelpText: String
-        get() = "set/get config entries"
+        get() = "manage config entries"
     override val longHelpText: String
         get() = "`$commandExample get key`: Gets stored config value for given key.\n" +
-                "`$commandExample set key value`: Sets config key to given value."
+                "`$commandExample set key value`: Sets config key to given value.\n" +
+                "`$commandExample reset key`: Resets value for given key.\n" +
+                "`$commandExample uwu key [value]`: Set uwu rule. Rule is removed if value is empty."
 
     override val needsAdmin: Boolean
         get() = true
@@ -38,12 +40,28 @@ object ConfigCommand : MessageCommandInterface
             event.message.channel.createMessage("`$key` is set to `${Config.getValue(key)}`")
             return
         }
-        if (args.getOrNull(1) == "rule")
+        if (args.getOrNull(1) == "reset")
         {
             val key = args.getOrNull(2) ?: return
-            val value = args.getOrNull(3) ?: return
-            Config.storeRule(key, value)
-            event.message.channel.createMessage("Rule made.")
+            Config.resetValue(key)
+            event.message.channel.createMessage("`$key` has been reset.")
+            return
+        }
+        if (args.getOrNull(1) == "uwu")
+        {
+            val key = args.getOrNull(2) ?: return
+            val value = args.getOrNull(3)
+
+            if (value == null)
+            {
+                Config.resetRule(key)
+                event.message.channel.createMessage("Rule removed.")
+            }
+            else
+            {
+                Config.storeRule(key, value)
+                event.message.channel.createMessage("Rule made.")
+            }
             return
         }
     }
