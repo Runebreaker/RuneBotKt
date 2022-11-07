@@ -78,7 +78,7 @@ interface MessageCommandInterface
     data class Subcommand(
         val commandDescription: CommandDescription,
         val function: suspend (MessageCreateEvent, List<String>, List<String>) -> Unit = { event, args, path ->
-            Util.sendMessage(event, "Try >help $path ${args[0]}")
+            Util.sendMessage(event, "Try >help $path")
         }, val subcommands: List<Subcommand>
     )
     {
