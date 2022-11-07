@@ -29,7 +29,7 @@ object DxDBehavior : Behavior
         lines.forEachIndexed { index, s ->
             if (comparator.similarity(s.lowercase(), content.lowercase()) > .8)
             {
-                println("$s: ${comparator.similarity(s.lowercase(), content.lowercase())}")
+                //println("$s: ${comparator.similarity(s.lowercase(), content.lowercase())}")
                 results.add(lines.getOrNull(index + 1) ?: return@forEachIndexed)
             }
         }
