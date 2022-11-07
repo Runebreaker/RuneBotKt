@@ -1,5 +1,6 @@
 package de.runebot
 
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
@@ -15,6 +16,7 @@ object RuneBot
     val scope: CoroutineScope = CoroutineScope(SupervisorJob())
 
     val token = System.getenv()["BOT_TOKEN"] ?: error("error reading bot token")
+    val adminRoleSnowflake = Snowflake(System.getenv()["ADMIN_ROLE_ID"]?.toULong() ?: error("error reading admin role id"))
     var kord: Kord? = null
         private set
 
@@ -30,6 +32,8 @@ object RuneBot
     private suspend fun bot()
     {
         kord = Kord(token)
+
+        println("Starting RuneBot with admin role id $adminRoleSnowflake...")
 
         kord?.let { kord ->
             Registry.messageCommands.forEach { it.prepare(kord) }

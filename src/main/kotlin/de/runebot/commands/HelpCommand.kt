@@ -29,7 +29,7 @@ object HelpCommand : MessageCommandInterface
         {
             sb.append("Available commands:")
             Registry.messageCommands
-                .filter { MessageCommandInterface.isAdmin(event) || !it.needsAdmin }
+                .filter { !it.needsAdmin || MessageCommandInterface.isAdmin(event) }
                 .forEach { cmd ->
                     sb.append("\n")
                     sb.append(cmd.names.joinToString(prefix = "`", separator = "`|`", postfix = "`: ") { MessageCommandInterface.prefix + it })
