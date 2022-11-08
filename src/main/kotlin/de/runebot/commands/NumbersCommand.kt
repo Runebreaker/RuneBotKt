@@ -46,7 +46,13 @@ object NumbersCommand : MessageCommandInterface
             if (args.isEmpty()) return@Subcommand
             args[0].toIntOrNull()?.let { number ->
                 if (!Files.exists(Path(iconPathProcessed))) prepareSiteIcon()
-                if (!doujins.containsKey(number) || !Files.isDirectory(Path("${doujinDirectory}/Doujin$number"))) doujins[number] = getNumberInfo(number, event)
+                if (!doujins.containsKey(number) || !Files.isDirectory(Path("${doujinDirectory}/Doujin$number")))
+                {
+                    getNumberInfo(number, event)?.let { doujins[number] = it } ?: run {
+                        Util.sendMessage(event, "This doujin does not exist!")
+                        return@let
+                    }
+                }
                 doujins[number]?.let { doujin ->
                     event.message.channel.createMessage {
                         makeEmbed(this, doujin)
@@ -191,10 +197,10 @@ object NumbersCommand : MessageCommandInterface
      * @return The created doujin.
      * @param number The nhentai numbers.
      */
-    private suspend fun getNumberInfo(number: Int, event: MessageCreateEvent): Doujin
+    private suspend fun getNumberInfo(number: Int, event: MessageCreateEvent): Doujin?
     {
         val preparationMessage = Util.sendMessage(event, "Preparing doujin... please wait.")
-        val doujinData = scrapeNHentai(number, preparationMessage)
+        val doujinData = scrapeNHentai(number, preparationMessage) ?: return null
         val pageList = mutableListOf<DoujinPage>()
         pageList.add(createInfoPage(number, doujinData))
         for (i in 0 until doujinData.page_number)
@@ -308,10 +314,13 @@ object NumbersCommand : MessageCommandInterface
 
     //region Web scraper
 
-    private suspend fun scrapeNHentai(number: Int, msg: Message?): DoujinData
+    private suspend fun scrapeNHentai(number: Int, msg: Message?): DoujinData?
     {
         val data = DoujinData()
-        Jsoup.connect("${siteUrl}g/$number").get().body().run {
+        val response = Jsoup.connect("${siteUrl}g/$number").ignoreHttpErrors(true).execute()
+
+        if (response.statusCode() != 200) return null
+        response.parse().body().run {
             // Fill Data
             select("h1").first()?.let { data.name = it.html() }
             select("h2").first()?.let { data.original_name = it.html() }
