@@ -36,6 +36,7 @@ object AnilistCommand : MessageCommandInterface
                 bobTheStringBuilder.trim { it == '/' }
                 bobTheStringBuilder.append(System.lineSeparator())
             }
+            // Test
             Util.sendMessage(event, bobTheStringBuilder.toString())
         },
         emptyList()
