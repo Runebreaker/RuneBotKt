@@ -446,7 +446,7 @@ object NumbersCommand : MessageCommandInterface
         fun gotoPage(desiredIndex: Int): DoujinPage
         {
             if (desiredIndex in 0..pages.lastIndex) index = desiredIndex
-            return pages[index]
+            return currentPage()
         }
     }
 
