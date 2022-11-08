@@ -12,6 +12,7 @@ import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.cache.data.*
 import dev.kord.core.entity.Embed
+import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.entity.interaction.GuildButtonInteraction
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
@@ -45,7 +46,7 @@ object NumbersCommand : MessageCommandInterface
             if (args.isEmpty()) return@Subcommand
             args[0].toIntOrNull()?.let { number ->
                 if (!Files.exists(Path(iconPathProcessed))) prepareSiteIcon()
-                if (!doujins.containsKey(number) || !Files.isDirectory(Path("${doujinDirectory}/Doujin$number"))) doujins[number] = getNumberInfo(number)
+                if (!doujins.containsKey(number) || !Files.isDirectory(Path("${doujinDirectory}/Doujin$number"))) doujins[number] = getNumberInfo(number, event)
                 doujins[number]?.let { doujin ->
                     event.message.channel.createMessage {
                         makeEmbed(this, doujin)
@@ -190,9 +191,10 @@ object NumbersCommand : MessageCommandInterface
      * @return The created doujin.
      * @param number The nhentai numbers.
      */
-    private fun getNumberInfo(number: Int): Doujin
+    private suspend fun getNumberInfo(number: Int, event: MessageCreateEvent): Doujin
     {
-        val doujinData = scrapeNHentai(number)
+        val preparationMessage = Util.sendMessage(event, "Preparing doujin... please wait.")
+        val doujinData = scrapeNHentai(number, preparationMessage)
         val pageList = mutableListOf<DoujinPage>()
         pageList.add(createInfoPage(number, doujinData))
         for (i in 0 until doujinData.page_number)
@@ -306,7 +308,7 @@ object NumbersCommand : MessageCommandInterface
 
     //region Web scraper
 
-    private fun scrapeNHentai(number: Int): DoujinData
+    private suspend fun scrapeNHentai(number: Int, msg: Message?): DoujinData
     {
         val data = DoujinData()
         Jsoup.connect("${siteUrl}g/$number").get().body().run {
@@ -388,7 +390,7 @@ object NumbersCommand : MessageCommandInterface
                 }
             }
 
-            // Cache Images -> keep for 1 week or so?
+            // Cache Images -> keep for 1 week or so? (currently until restart)
             if (!Files.isDirectory(Path("$doujinDirectory"))) Files.createDirectory(Path("$doujinDirectory"))
             if (!Files.isDirectory(Path("${doujinDirectory}/Doujin$number"))) Files.createDirectory(Path("${doujinDirectory}/Doujin$number"))
             val thumbnailImageAddress = getElementById("cover")?.firstElementChild()?.firstElementChild()?.attr("src")
@@ -396,10 +398,18 @@ object NumbersCommand : MessageCommandInterface
             downloadDoujinImages(URL(thumbnailImageAddress), number, downloadIndex++)
             getElementsByClass("thumb-container").forEach { pageElement ->
                 pageElement.firstElementChild()?.firstElementChild()?.let { imageElement ->
-                    println("Downloading page $downloadIndex of ${data.page_number}")
-                    downloadDoujinImages(URL(imageElement.attr("data-src")), number, downloadIndex++)
+                    msg?.edit {
+                        content = "Downloading page $downloadIndex of ${data.page_number}"
+                    }
+
+                    val thumbnailURL = imageElement.attr("data-src")
+                    // Convert .../.../1t.jpg -> .../.../1.jpg
+                    val imageURL = Regex("t(?=\\.\\w+)").replace(thumbnailURL, "")
+
+                    downloadDoujinImages(URL(imageURL), number, downloadIndex++)
                 }
             }
+            msg?.delete("Download finished.")
         }
         return data
     }
