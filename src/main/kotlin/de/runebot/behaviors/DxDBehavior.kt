@@ -50,8 +50,8 @@ object DxDBehavior : Behavior
         hits.sortByDescending { it.second }
 
         // debug
-        hits.forEach { println(it) }
-        println()
+        //hits.forEach { println(it) }
+        //println()
 
         val result = mutableListOf<String>()
         result.addAll(hits.filter { hits.maxOf { it.second } == it.second }.map { it.first }) // add all max similarity
