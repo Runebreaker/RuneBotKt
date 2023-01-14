@@ -168,7 +168,7 @@ object WhatCommand : MessageCommandInterface
     {
         val id = emoji.codePoints().toList()
             .joinToString(separator = "-") { it.toString(16) }
-        return "https://twemoji.maxcdn.com/v/latest/72x72/$id.png"
+        return "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/$id.png"
     }
 
     fun unicodeEmojiToHex(emoji: String): List<String>
