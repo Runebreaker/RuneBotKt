@@ -42,6 +42,8 @@ object Config
         config = serializer.decodeFromString(pathToConfigFile.toFile().readText())
     }
 
+    //region KeyValueStorage
+
     fun storeValue(key: String, value: String)
     {
         config.keyValueStorage[key] = value
@@ -58,6 +60,10 @@ object Config
     {
         return config.keyValueStorage[key]
     }
+
+    //endregion
+
+    //region UwURules
 
     fun storeRule(key: String, value: String)
     {
@@ -78,6 +84,30 @@ object Config
         }
     }
 
+    //endregion
+
+    //region DisabledBehaviourChannels
+
+    fun storeDisabledBehaviour(guild: ULong, channel: ULong, behaviour: String)
+    {
+        config.guildConfigs.getOrPut(guild) { GuildConfig() }.channelConfigs.getOrPut(channel) { ChannelConfig() }.behaviourDisables.add(behaviour)
+        saveToFile()
+    }
+
+    fun resetDisabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
+    {
+        val retVal = config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourDisables.remove(behaviour)
+        saveToFile()
+        return retVal
+    }
+
+    fun getDisabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
+    {
+        return config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourDisables.contains(behaviour)
+    }
+
+    //endregion
+
     private fun saveToFile()
     {
         Files.writeString(pathToConfigFile, serializer.encodeToString(config))
@@ -87,5 +117,17 @@ object Config
 @Serializable
 class ConfigStructure(
     val keyValueStorage: MutableMap<String, String> = mutableMapOf(),
-    val uwurules: MutableMap<String, String> = mutableMapOf()
+    val uwurules: MutableMap<String, String> = mutableMapOf(),
+    // Guilds structure: Guilds > Channels > Toggles
+    val guildConfigs: MutableMap<ULong, GuildConfig> = mutableMapOf()
+)
+
+@Serializable
+class ChannelConfig(
+    val behaviourDisables: MutableSet<String> = mutableSetOf()
+)
+
+@Serializable
+class GuildConfig(
+    val channelConfigs: MutableMap<ULong, ChannelConfig> = mutableMapOf()
 )
