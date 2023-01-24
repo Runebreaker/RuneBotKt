@@ -1,5 +1,6 @@
 package de.runebot.behaviors
 
+import de.runebot.config.Config
 import dev.kord.core.event.message.MessageCreateEvent
 
 interface Behavior
@@ -10,6 +11,13 @@ interface Behavior
         {
             TestBehavior.run(content, messageCreateEvent)
         }
+    }
+
+    fun isDisabled(guildId: ULong, channelId: ULong): Boolean
+    {
+        this::class.simpleName?.let { className ->
+            return Config.getDisabledBehaviour(guildId, channelId, className)
+        } ?: return false
     }
 
     suspend fun run(content: String, messageCreateEvent: MessageCreateEvent)
