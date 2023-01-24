@@ -49,7 +49,11 @@ object Registry
     suspend fun handleBehaviors(messageCreateEvent: MessageCreateEvent)
     {
         val messageContent = messageCreateEvent.message.content
-        behaviors.forEach { it.run(messageContent, messageCreateEvent) }
+        behaviors.forEach { behavior ->
+            messageCreateEvent.guildId?.let { guildSF ->
+                if (!behavior.isDisabled(guildSF.value, messageCreateEvent.message.channelId.value)) behavior.run(messageContent, messageCreateEvent)
+            }
+        }
     }
 
     suspend fun handleMessageCommands(messageCreateEvent: MessageCreateEvent): Boolean
