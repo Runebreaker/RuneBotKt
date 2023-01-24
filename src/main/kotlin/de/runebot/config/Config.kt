@@ -88,22 +88,22 @@ object Config
 
     //region DisabledBehaviourChannels
 
-    fun storeDisabledBehaviour(guild: ULong, channel: ULong, behaviour: String)
+    fun storeEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String)
     {
-        config.guildConfigs.getOrPut(guild) { GuildConfig() }.channelConfigs.getOrPut(channel) { ChannelConfig() }.behaviourDisables.add(behaviour)
+        config.guildConfigs.getOrPut(guild) { GuildConfig() }.channelConfigs.getOrPut(channel) { ChannelConfig() }.behaviourEnables.add(behaviour)
         saveToFile()
     }
 
-    fun resetDisabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
+    fun resetEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
     {
-        val retVal = config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourDisables.remove(behaviour)
+        val retVal = config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourEnables.remove(behaviour)
         saveToFile()
         return retVal
     }
 
-    fun getDisabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
+    fun getEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
     {
-        return config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourDisables.contains(behaviour)
+        return config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourEnables.contains(behaviour)
     }
 
     //endregion
@@ -124,7 +124,7 @@ class ConfigStructure(
 
 @Serializable
 class ChannelConfig(
-    val behaviourDisables: MutableSet<String> = mutableSetOf()
+    val behaviourEnables: MutableSet<String> = mutableSetOf()
 )
 
 @Serializable

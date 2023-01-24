@@ -13,10 +13,10 @@ interface Behavior
         }
     }
 
-    fun isDisabled(guildId: ULong, channelId: ULong): Boolean
+    fun isEnabled(guildId: ULong, channelId: ULong): Boolean
     {
         this::class.simpleName?.let { className ->
-            return Config.getDisabledBehaviour(guildId, channelId, className)
+            return Config.getEnabledBehaviour(guildId, channelId, className)
         } ?: return false
     }
 

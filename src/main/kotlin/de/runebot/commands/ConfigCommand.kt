@@ -90,7 +90,7 @@ object ConfigCommand : MessageCommandInterface
                 {
                     event.guildId?.let { guildSF ->
                         behaviourNames.forEach {
-                            Config.storeDisabledBehaviour(guildSF.value, event.message.channelId.value, it)
+                            Config.resetEnabledBehaviour(guildSF.value, event.message.channelId.value, it)
                         }
                         Util.sendMessage(event, "Disabled all behaviours.")
                     } ?: Util.sendMessage(event, "Did not find associated guild.")
@@ -102,7 +102,7 @@ object ConfigCommand : MessageCommandInterface
                     return
                 }
                 event.guildId?.let { guildSF ->
-                    Config.storeDisabledBehaviour(guildSF.value, event.message.channelId.value, args[3])
+                    Config.resetEnabledBehaviour(guildSF.value, event.message.channelId.value, args[3])
                     Util.sendMessage(event, "Disabled behaviour ${args[3]}")
                 } ?: Util.sendMessage(event, "Did not find associated guild.")
                 return
@@ -113,7 +113,7 @@ object ConfigCommand : MessageCommandInterface
                 {
                     event.guildId?.let { guildSF ->
                         behaviourNames.forEach {
-                            Config.resetDisabledBehaviour(guildSF.value, event.message.channelId.value, it)
+                            Config.storeEnabledBehaviour(guildSF.value, event.message.channelId.value, it)
                         }
                         Util.sendMessage(event, "Enabled all behaviours.")
                     } ?: Util.sendMessage(event, "Did not find associated guild.")
@@ -125,7 +125,7 @@ object ConfigCommand : MessageCommandInterface
                     return
                 }
                 event.guildId?.let { guildSF ->
-                    Config.resetDisabledBehaviour(guildSF.value, event.message.channelId.value, args[3])
+                    Config.storeEnabledBehaviour(guildSF.value, event.message.channelId.value, args[3])
                     Util.sendMessage(event, "Enabled behaviour ${args[3]}")
                 } ?: Util.sendMessage(event, "Did not find associated guild.")
             }

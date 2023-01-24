@@ -51,7 +51,7 @@ object Registry
         val messageContent = messageCreateEvent.message.content
         behaviors.forEach { behavior ->
             messageCreateEvent.guildId?.let { guildSF ->
-                if (!behavior.isDisabled(guildSF.value, messageCreateEvent.message.channelId.value)) behavior.run(messageContent, messageCreateEvent)
+                if (behavior.isEnabled(guildSF.value, messageCreateEvent.message.channelId.value)) behavior.run(messageContent, messageCreateEvent)
             }
         }
     }
