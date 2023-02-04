@@ -20,7 +20,7 @@ dependencies {
     testImplementation(kotlin("test"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("dev.kord:kord-core:0.8.0-M15")
+    implementation("dev.kord:kord-core:0.8.0-M17")
     implementation("dev.kord.x:emoji:0.5.0")
 
     implementation("org.jetbrains.exposed:exposed-core:0.38.2")
