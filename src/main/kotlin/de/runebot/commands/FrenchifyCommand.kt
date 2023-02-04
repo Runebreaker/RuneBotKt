@@ -78,9 +78,12 @@ object FrenchifyCommand : MessageCommandInterface
         input.lowercase().forEach { char ->
             rules[char.toString()]?.let {
                 bobTheBuilder.append(it)
-            }
+            } ?: bobTheBuilder.append(char.toString())
         }
 
-        return bobTheBuilder.toString()
+        // Check for markdown edge cases
+
+        val returnString = bobTheBuilder.toString()
+        return Regex("\\*\\*\\*\\*").replace(returnString, "")
     }
 }
