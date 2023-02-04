@@ -1,7 +1,10 @@
 package de.runebot.commands
 
 import de.runebot.Util
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kord.core.cache.data.EmojiData
+import dev.kord.core.entity.GuildEmoji
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -27,9 +30,13 @@ object WhatCommand : MessageCommandInterface
 
     private var emojis = mutableListOf<Emoji>()
     private var lastEmojiUpdate: Long = 0
+    private lateinit var kord: Kord
+
+    private val guildEmojiRegex = Regex("<a?:[a-zA-Z0-9_]+:[0-9]+>")
 
     override fun prepare(kord: Kord)
     {
+        this.kord = kord
         loadCurrentEmojiList()
         println("Emojis loaded from https://www.unicode.org/Public/emoji/latest/emoji-test.txt")
     }
@@ -42,28 +49,13 @@ object WhatCommand : MessageCommandInterface
             val content = referencedMessage.content
             val index = args.getOrNull(1)?.toIntOrNull() ?: 0
 
-            val foundEmojis = mutableListOf<Pair<Int, String>>()
-
-            findEmojis(content).forEach { (index, fullEmoji) ->
-                getPossibleAlternatives(fullEmoji).forEach { foundEmojis.add(index to it.fullEmoji) }
-            }
+            val foundEmojis = findEmojis(content, event.guildId ?: Snowflake(0))
 
             val background = withContext(Dispatchers.IO) {
                 ImageIO.read(WhatCommand::class.java.getResourceAsStream("/IDSB.jpg"))
             }
             val graphics = background.createGraphics()
-            val emoji = withContext(Dispatchers.IO) {
-                foundEmojis.filter { it.first == index }.forEach { (_, fullEmoji) ->
-                    try
-                    {
-                        return@withContext ImageIO.read(URL(getEmojiURL(fullEmoji)))
-                    } catch (_: Exception)
-                    {
-                    }
-                }
-
-                return@withContext ImageIO.read(URL(getEmojiURL("🍆")))
-            }
+            val emoji = loadEmoji(foundEmojis[index] ?: emptyList())
             referencedMessage.getAuthorAsMember()?.avatar?.url?.let { url ->
                 ImageIO.read(URL(url))
             }?.let {
@@ -80,10 +72,25 @@ object WhatCommand : MessageCommandInterface
         } ?: Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`")
     }
 
+    private fun loadEmoji(possibleURLs: List<String>): BufferedImage
+    {
+        possibleURLs.forEach { url ->
+            try
+            {
+                return ImageIO.read(URL(url))
+            } catch (e: Exception)
+            {
+                e.printStackTrace()
+            }
+        }
+
+        return ImageIO.read(URL(getEmojiURL("🍆"))) // TODO: change default
+    }
+
     /**
-     * @return list of pairs of index and emoji
+     * @return list of order index to URL
      */
-    private fun findEmojis(text: String): List<Pair<Int, String>>
+    private fun findEmojis(text: String, guildId: Snowflake): Map<Int, List<String>>
     {
         val result = mutableListOf<Pair<Int, String>>()
 
@@ -112,8 +119,22 @@ object WhatCommand : MessageCommandInterface
             }
         }
 
-        val actualResult = realResult.filter { !indexToShouldRemove.getValue(it.first) } // actually delete emojis that were determined to be deleted
-        return actualResult.mapIndexed { index, pair -> index to pair.second }
+        val stringIndexToEmojiString = realResult.filter { !indexToShouldRemove.getValue(it.first) }.toMutableList() // actually delete emojis that were determined to be deleted
+        stringIndexToEmojiString.toList().forEach { (index, emoji) ->
+            getPossibleAlternatives(emoji).forEach { stringIndexToEmojiString.add(index to it.fullEmoji) }
+        }
+
+        val stringIndexToURLs = stringIndexToEmojiString.map { it.first to getEmojiURL(it.second) }.toMutableList()
+
+        guildEmojiRegex.findAll(text).forEach { matchResult ->
+            matchResult.value.split(":")[2].removeSuffix(">").toLongOrNull()?.let { id ->
+                stringIndexToURLs.add(matchResult.range.first to getGuildEmojiURL(Snowflake(id), guildId))
+            }
+        }
+
+        val toBeReturned = mutableMapOf<Int, List<String>>()
+        stringIndexToURLs.groupBy({ it.first }, { it.second }).toList().sortedBy { it.first }.forEachIndexed { index, (key, value) -> toBeReturned[index] = value }
+        return toBeReturned
     }
 
     private fun loadCurrentEmojiList()
@@ -169,6 +190,11 @@ object WhatCommand : MessageCommandInterface
         val id = emoji.codePoints().toList()
             .joinToString(separator = "-") { it.toString(16) }
         return "https://cdn.jsdelivr.net/gh/twitter/twemoji@latest/assets/72x72/$id.png"
+    }
+
+    fun getGuildEmojiURL(guildEmojiId: Snowflake, guildId: Snowflake): String
+    {
+        return GuildEmoji(EmojiData(guildEmojiId, guildId), kord).image.cdnUrl.toUrl()
     }
 
     fun unicodeEmojiToHex(emoji: String): List<String>
