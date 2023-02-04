@@ -73,7 +73,7 @@ object WhatCommand : MessageCommandInterface
             graphics.drawImage(emoji, 512 - 60, 275 - 60, 120, 120, null) // bubble
             graphics.drawImage(emoji, 243 - 17, 919 - 17, 33, 33, null) // response
             Util.sendImage(event.message.channel, "what.jpg", background)
-
+            return
         }
         Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`")
     }
