@@ -9,8 +9,8 @@ object SixtyNineBehavior : Behavior
 {
     val regexes = listOf(
         Regex("(s|S).*(i|I).*(x|X).*(t|T).*(y|Y).*(n|N).*(i|I).*(n|N).*(e|E)", DOT_MATCHES_ALL) to "sixtynine",
-        Regex("69") to "69",
-        Regex("6️⃣9️⃣") to "6️⃣9️⃣",
+        // Regex("69") to "69",
+        // Regex("6️⃣9️⃣") to "6️⃣9️⃣",
         Regex("LXIX") to "LXIX",
         Regex("(n|N).*(e|E).*(u|U).*(n|N).*(u|U).*(n|N).*(d|D).*(s|S).*(e|E).*(c|C).*(h|H).*(z|Z).*(i|I).*(g|G)", DOT_MATCHES_ALL) to "neunundsechzig",
         Regex("(s|S).*(e|E).*(c|C).*(h|H).*(s|S).*(n|N).*(e|E).*(u|U).*(n|N)", DOT_MATCHES_ALL) to "sechsneun",
