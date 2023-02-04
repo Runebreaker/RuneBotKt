@@ -1,6 +1,8 @@
 package de.runebot.commands
 
 import de.runebot.Util
+import de.runebot.Util.Rule
+import de.runebot.Util.replaceUsingRuleset
 import de.runebot.config.Config
 import dev.kord.common.entity.MessageType
 import dev.kord.core.Kord
@@ -34,7 +36,7 @@ object UwuifyCommand : MessageCommandInterface
     override val longHelpText: String
         get() = uwuify.toTree().toString()
 
-    private val wuleset = mutableSetOf<Rule>()
+    private val ruleset = mutableSetOf<Rule>()
     private const val UWU_PERCENT_BARRIER_MAX = 0.3
 
     override fun prepare(kord: Kord)
@@ -44,30 +46,23 @@ object UwuifyCommand : MessageCommandInterface
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
-        wuleset.clear()
-        wuleset.addAll(Config.getRules())
+        ruleset.clear()
+        ruleset.addAll(Config.getRules())
 
         uwuify.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
     }
 
     private fun translate(input: String): String // Mainly for rules implementation
     {
-        var result = input
-        var uwuCounter = 0
-
-        wuleset.forEach { wule ->
-            val ruleRegex = Regex(wule.regex)
-            ruleRegex.find(input)?.let { uwuCounter++ }
-            result = ruleRegex.replace(result, wule.replace)
-        }
+        // result, replace count
+        val resultPair: Pair<String, Int> = replaceUsingRuleset(input, ruleset)
+        var result: String = resultPair.first
 
         // tangent hyperbolicus curve to determine the percentage of uwu appendage
-        val percent = (-UWU_PERCENT_BARRIER_MAX / 2.0) * tanh(input.length / 5.0 - 6.0) + UWU_PERCENT_BARRIER_MAX / 2.0
-        if (uwuCounter.toDouble() / input.length.toDouble() <= percent)
+        val percent: Double = (-UWU_PERCENT_BARRIER_MAX / 2.0) * tanh(input.length / 5.0 - 6.0) + UWU_PERCENT_BARRIER_MAX / 2.0
+        if (resultPair.second.toDouble() / input.length.toDouble() <= percent)
             result = "$result uwu"
 
         return result
     }
-
-    data class Rule(val regex: String = "", val replace: String = "")
 }
