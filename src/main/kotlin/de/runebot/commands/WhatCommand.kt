@@ -26,7 +26,7 @@ object WhatCommand : MessageCommandInterface
     override val shortHelpText: String
         get() = "when people speak bottom"
     override val longHelpText: String
-        get() = "`$commandExample index`: Use as reply to message with Emojis in it. `index` determines what Emoji should be used and defaults to 0. `index` is 0-indexed."
+        get() = "`$commandExample index`: Use as reply to message with Emojis in it. `index` determines what Emoji should be used and defaults to 0. `index` is zero-indexed."
 
     private var emojis = mutableListOf<Emoji>()
     private var lastEmojiUpdate: Long = 0
@@ -50,12 +50,17 @@ object WhatCommand : MessageCommandInterface
             val index = args.getOrNull(1)?.toIntOrNull() ?: 0
 
             val foundEmojis = findEmojis(content, event.guildId ?: Snowflake(0))
+            if (foundEmojis.isEmpty())
+            {
+                Util.sendMessage(event, "No Emoji found!")
+                return
+            }
 
             val background = withContext(Dispatchers.IO) {
                 ImageIO.read(WhatCommand::class.java.getResourceAsStream("/IDSB.jpg"))
             }
             val graphics = background.createGraphics()
-            val emoji = loadEmoji(foundEmojis[index] ?: emptyList())
+            val emoji = loadEmoji(foundEmojis[index] ?: emptyList()) ?: return@let
             referencedMessage.getAuthorAsMember()?.avatar?.url?.let { url ->
                 ImageIO.read(URL(url))
             }?.let {
@@ -69,10 +74,11 @@ object WhatCommand : MessageCommandInterface
             graphics.drawImage(emoji, 243 - 17, 919 - 17, 33, 33, null) // response
             Util.sendImage(event.message.channel, "what.jpg", background)
 
-        } ?: Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`")
+        }
+        Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`")
     }
 
-    private fun loadEmoji(possibleURLs: List<String>): BufferedImage
+    private fun loadEmoji(possibleURLs: List<String>): BufferedImage?
     {
         possibleURLs.forEach { url ->
             try
@@ -84,7 +90,7 @@ object WhatCommand : MessageCommandInterface
             }
         }
 
-        return ImageIO.read(URL(getEmojiURL("🍆"))) // TODO: change default
+        return null
     }
 
     /**
