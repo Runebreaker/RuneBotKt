@@ -1,16 +1,16 @@
 package de.runebot.commands
 
 import de.runebot.Util
-import dev.kord.common.Color
+import de.runebot.Util.EmbedCatalogue
+import de.runebot.Util.EmbedCatalogue.Catalogue
+import de.runebot.Util.EmbedCatalogue.CataloguePage
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
-import dev.kord.common.entity.optional.Optional
-import dev.kord.common.entity.optional.OptionalInt
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.core.cache.data.*
+import dev.kord.core.cache.data.EmbedFieldData
 import dev.kord.core.entity.Embed
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.ReactionEmoji
@@ -19,7 +19,6 @@ import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
-import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.UserMessageCreateBuilder
 import dev.kord.rest.builder.message.modify.UserMessageModifyBuilder
 import dev.kord.x.emoji.Emojis
@@ -31,7 +30,6 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.net.URL
 import java.nio.file.Files
-import java.nio.file.Path
 import java.util.*
 import javax.imageio.ImageIO
 import kotlin.io.path.Path
@@ -75,7 +73,7 @@ object NumbersCommand : MessageCommandInterface
 
     private val doujinDirectory = Path("doujins/")
     private val iconDirectory = Path("icons/")
-    private val doujins = mutableMapOf<Int, Doujin>()
+    private val doujins = mutableMapOf<Int, Catalogue>()
     private const val siteUrl = "https://nhentai.to/"
     private const val iconUrl = "${siteUrl}/favicon.ico"
     private val iconPath = "${iconDirectory}/favicon.ico"
@@ -161,13 +159,13 @@ object NumbersCommand : MessageCommandInterface
     /**
      * Applies the current page of the doujin to the passed builder.
      */
-    private suspend fun makeEmbed(builder: UserMessageCreateBuilder, doujin: Doujin)
+    private suspend fun makeEmbed(builder: UserMessageCreateBuilder, doujin: Catalogue)
     {
         builder.apply {
             val currentPage = doujin.currentPage()
             embeds.add(currentPage.embedBuilder)
             currentPage.files.forEach {
-                addFile(it)
+                addFile(it.value)
             }
             components.add(createActionRow(doujin.index, doujin.pages.lastIndex))
         }
@@ -176,13 +174,13 @@ object NumbersCommand : MessageCommandInterface
     /**
      * Applies the current page of the doujin to the passed builder.
      */
-    private suspend fun makeEmbed(builder: UserMessageModifyBuilder, doujin: Doujin)
+    private suspend fun makeEmbed(builder: UserMessageModifyBuilder, doujin: Catalogue)
     {
         builder.apply {
             val currentPage = doujin.currentPage()
             embeds = mutableListOf(currentPage.embedBuilder)
             currentPage.files.forEach {
-                addFile(it)
+                addFile(it.value)
             }
             components = mutableListOf(createActionRow(doujin.index, doujin.pages.lastIndex))
         }
@@ -197,118 +195,154 @@ object NumbersCommand : MessageCommandInterface
      * @return The created doujin.
      * @param number The nhentai numbers.
      */
-    private suspend fun getNumberInfo(number: Int, event: MessageCreateEvent): Doujin?
+    private suspend fun getNumberInfo(number: Int, event: MessageCreateEvent): Catalogue?
     {
+        val wrapper = EmbedCatalogue()
         val preparationMessage = Util.sendMessage(event, "Preparing doujin... please wait.")
         val doujinData = scrapeNHentai(number, preparationMessage) ?: return null
-        val pageList = mutableListOf<DoujinPage>()
-        pageList.add(createInfoPage(number, doujinData))
+        println(doujinData)
+        // Info Page
+        createInfoPage(wrapper.addPage(), number, doujinData)
         for (i in 0 until doujinData.page_number)
         {
-            pageList.add(createImagePage(number, doujinData, i))
+            createImagePage(wrapper.addPage(), number, doujinData, i)
         }
-        return Doujin(
-            pageList
-        )
+        return wrapper.catalogue
     }
 
-    private fun createInfoPage(number: Int, doujinData: DoujinData): DoujinPage
+    /**
+     * Modifies the passed page to represent the "Info" page of the doujin.
+     */
+    private fun createInfoPage(page: CataloguePage, number: Int, data: DoujinData)
     {
-        val fields = mutableListOf<EmbedFieldData>()
-        if (doujinData.parodies.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Parodies", doujinData.parodies.joinToString(", ")))
-        if (doujinData.characters.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Characters", doujinData.characters.joinToString(", ")))
-        if (doujinData.tags.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Tags", doujinData.tags.joinToString(", ")))
-        if (doujinData.artists.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Artists", doujinData.artists.joinToString(", ")))
-        if (doujinData.groups.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Groups", doujinData.groups.joinToString(", ")))
-        if (doujinData.languages.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Languages", doujinData.languages.joinToString(", ")))
-        if (doujinData.categories.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Categories", doujinData.categories.joinToString(", ")))
-        val footerData = EmbedFooterData(
-            text = "$siteUrl <<< ${doujinData.upload_date}",
-            iconUrl = Optional.Value("attachment://favicon.png"),
-            proxyIconUrl = Optional.Missing()
-        )
-        val thumbnailData = EmbedThumbnailData(
-            url = Optional.Value("attachment://0.png"),
-            proxyUrl = Optional.Missing(),
-            height = OptionalInt.Missing,
-            width = OptionalInt.Missing
-        )
-        val combinedTitle = doujinData.name
-        doujinData.original_name?.let { combinedTitle.plus("${System.lineSeparator()}$it") }
-        val data = EmbedData(
-            title = Optional.Value("$number"),
-            type = Optional.Missing(),
-            description = Optional.Value(combinedTitle),
-            url = Optional.Value("${siteUrl}g/$number"),
-            timestamp = Optional.Missing(),
-            color = OptionalInt.Value(Color(255, 0, 0).rgb),
-            footer = Optional.Value(footerData),
-            image = Optional.Missing(),
-            thumbnail = Optional.Value(thumbnailData),
-            video = Optional.Missing(),
-            provider = Optional.Missing(),
-            author = Optional.Missing(),
-            fields = Optional.Value(fields)
-        )
-        val builder = EmbedBuilder()
-        Embed(data, kord).apply(builder)
-        return DoujinPage(builder, listOf(Path("${doujinDirectory}/Doujin${number}/0.png"), Path(iconPathProcessed)))
+        // Processing values
+        val combinedTitle = data.name
+        data.original_name?.let { combinedTitle.plus("${System.lineSeparator()}$it") }
+
+        // Applying them
+        page.setTitle("$number")
+        page.setDescription(combinedTitle)
+        page.setURL("${siteUrl}g/$number")
+        page.setFooter("$siteUrl <<< ${data.upload_date}", Path(iconPathProcessed))
+        page.setThumbnail(Path("${doujinDirectory}/Doujin${number}/0.png"))
+        if (data.parodies.joinToString(", ").isNotEmpty()) page.addFields(EmbedFieldData("Parodies", data.parodies.joinToString(", ")))
+        if (data.characters.joinToString(", ").isNotEmpty()) page.addFields(EmbedFieldData("Characters", data.characters.joinToString(", ")))
+        if (data.tags.joinToString(", ").isNotEmpty()) page.addFields(EmbedFieldData("Tags", data.tags.joinToString(", ")))
+        if (data.artists.joinToString(", ").isNotEmpty()) page.addFields(EmbedFieldData("Artists", data.artists.joinToString(", ")))
+        if (data.groups.joinToString(", ").isNotEmpty()) page.addFields(EmbedFieldData("Groups", data.groups.joinToString(", ")))
+        if (data.languages.joinToString(", ").isNotEmpty()) page.addFields(EmbedFieldData("Languages", data.languages.joinToString(", ")))
+        if (data.categories.joinToString(", ").isNotEmpty()) page.addFields(EmbedFieldData("Categories", data.categories.joinToString(", ")))
+
+        Embed(page.data, kord).apply(page.embedBuilder)
     }
 
-    private fun createImagePage(number: Int, doujinData: DoujinData, index: Int): DoujinPage
+    private fun createImagePage(page: CataloguePage, number: Int, data: DoujinData, index: Int)
     {
-        val footerData = EmbedFooterData(
-            text = "$siteUrl <<< ${doujinData.upload_date}",
-            iconUrl = Optional.Value("attachment://favicon.png"),
-            proxyIconUrl = Optional.Missing()
-        )
-        val imageData = EmbedImageData(
-            url = Optional.Value("attachment://${index}.png"),
-            proxyUrl = Optional.Missing(),
-            height = OptionalInt.Missing,
-            width = OptionalInt.Missing
-        )
-        val data = EmbedData(
-            title = Optional.Value("$number"),
-            type = Optional.Missing(),
-            description = Optional.Missing(),
-            url = Optional.Value("${siteUrl}g/$number"),
-            timestamp = Optional.Missing(),
-            color = OptionalInt.Value(Color(255, 0, 0).rgb),
-            footer = Optional.Value(footerData),
-            image = Optional.Value(imageData),
-            thumbnail = Optional.Missing(),
-            video = Optional.Missing(),
-            provider = Optional.Missing(),
-            author = Optional.Missing(),
-            fields = Optional.Missing()
-        )
-        val builder = EmbedBuilder()
-        Embed(data, kord).apply(builder)
-        return DoujinPage(builder, listOf(Path("${doujinDirectory}/Doujin${number}/${index}.png"), Path(iconPathProcessed)))
+        page.setTitle("$number")
+        page.setURL("${siteUrl}g/$number")
+        page.setFooter("$siteUrl <<< ${data.upload_date}", Path(iconPathProcessed))
+        page.setImage(Path("${doujinDirectory}/Doujin${number}/${index}.png"))
+
+        Embed(page.data, kord).apply(page.embedBuilder)
     }
 
-    private fun createTestPage(): DoujinPage
-    {
-        val data = EmbedData(
-            title = Optional.Value("This is a test"),
-            type = Optional.Missing(),
-            description = Optional.Missing(),
-            url = Optional.Missing(),
-            timestamp = Optional.Missing(),
-            color = OptionalInt.Value(Color(255, 0, 0).rgb),
-            footer = Optional.Missing(),
-            image = Optional.Missing(),
-            thumbnail = Optional.Missing(),
-            video = Optional.Missing(),
-            provider = Optional.Missing(),
-            author = Optional.Missing(),
-            fields = Optional.Missing()
-        )
-        val builder = EmbedBuilder()
-        Embed(data, kord).apply(builder)
-        return DoujinPage(builder)
-    }
+//    private fun createInfoPage(number: Int, doujinData: DoujinData): DoujinPage
+//    {
+//        val fields = mutableListOf<EmbedFieldData>()
+//        if (doujinData.parodies.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Parodies", doujinData.parodies.joinToString(", ")))
+//        if (doujinData.characters.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Characters", doujinData.characters.joinToString(", ")))
+//        if (doujinData.tags.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Tags", doujinData.tags.joinToString(", ")))
+//        if (doujinData.artists.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Artists", doujinData.artists.joinToString(", ")))
+//        if (doujinData.groups.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Groups", doujinData.groups.joinToString(", ")))
+//        if (doujinData.languages.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Languages", doujinData.languages.joinToString(", ")))
+//        if (doujinData.categories.joinToString(", ").isNotEmpty()) fields.add(EmbedFieldData("Categories", doujinData.categories.joinToString(", ")))
+//        val footerData = EmbedFooterData(
+//            text = "$siteUrl <<< ${doujinData.upload_date}",
+//            iconUrl = Optional.Value("attachment://favicon.png"),
+//            proxyIconUrl = Optional.Missing()
+//        )
+//        val thumbnailData = EmbedThumbnailData(
+//            url = Optional.Value("attachment://0.png"),
+//            proxyUrl = Optional.Missing(),
+//            height = OptionalInt.Missing,
+//            width = OptionalInt.Missing
+//        )
+//        val combinedTitle = doujinData.name
+//        doujinData.original_name?.let { combinedTitle.plus("${System.lineSeparator()}$it") }
+//        val data = EmbedData(
+//            title = Optional.Value("$number"),
+//            type = Optional.Missing(),
+//            description = Optional.Value(combinedTitle),
+//            url = Optional.Value("${siteUrl}g/$number"),
+//            timestamp = Optional.Missing(),
+//            color = OptionalInt.Value(Color(255, 0, 0).rgb),
+//            footer = Optional.Value(footerData),
+//            image = Optional.Missing(),
+//            thumbnail = Optional.Value(thumbnailData),
+//            video = Optional.Missing(),
+//            provider = Optional.Missing(),
+//            author = Optional.Missing(),
+//            fields = Optional.Value(fields)
+//        )
+//        val builder = EmbedBuilder()
+//        Embed(data, kord).apply(builder)
+//        return DoujinPage(builder, listOf(Path("${doujinDirectory}/Doujin${number}/0.png"), Path(iconPathProcessed)))
+//    }
+//
+//    private fun createImagePage(number: Int, doujinData: DoujinData, index: Int): DoujinPage
+//    {
+//        val footerData = EmbedFooterData(
+//            text = "$siteUrl <<< ${doujinData.upload_date}",
+//            iconUrl = Optional.Value("attachment://favicon.png"),
+//            proxyIconUrl = Optional.Missing()
+//        )
+//        val imageData = EmbedImageData(
+//            url = Optional.Value("attachment://${index}.png"),
+//            proxyUrl = Optional.Missing(),
+//            height = OptionalInt.Missing,
+//            width = OptionalInt.Missing
+//        )
+//        val data = EmbedData(
+//            title = Optional.Value("$number"),
+//            type = Optional.Missing(),
+//            description = Optional.Missing(),
+//            url = Optional.Value("${siteUrl}g/$number"),
+//            timestamp = Optional.Missing(),
+//            color = OptionalInt.Value(Color(255, 0, 0).rgb),
+//            footer = Optional.Value(footerData),
+//            image = Optional.Value(imageData),
+//            thumbnail = Optional.Missing(),
+//            video = Optional.Missing(),
+//            provider = Optional.Missing(),
+//            author = Optional.Missing(),
+//            fields = Optional.Missing()
+//        )
+//        val builder = EmbedBuilder()
+//        Embed(data, kord).apply(builder)
+//        return DoujinPage(builder, listOf(Path("${doujinDirectory}/Doujin${number}/${index}.png"), Path(iconPathProcessed)))
+//    }
+//
+//    private fun createTestPage(): DoujinPage
+//    {
+//        val data = EmbedData(
+//            title = Optional.Value("This is a test"),
+//            type = Optional.Missing(),
+//            description = Optional.Missing(),
+//            url = Optional.Missing(),
+//            timestamp = Optional.Missing(),
+//            color = OptionalInt.Value(Color(255, 0, 0).rgb),
+//            footer = Optional.Missing(),
+//            image = Optional.Missing(),
+//            thumbnail = Optional.Missing(),
+//            video = Optional.Missing(),
+//            provider = Optional.Missing(),
+//            author = Optional.Missing(),
+//            fields = Optional.Missing()
+//        )
+//        val builder = EmbedBuilder()
+//        Embed(data, kord).apply(builder)
+//        return DoujinPage(builder)
+//    }
 
     //endregion
 
@@ -443,33 +477,33 @@ object NumbersCommand : MessageCommandInterface
 
     //region Data Classes
 
-    data class Doujin(val pages: List<DoujinPage>, var index: Int = 0, var doujinData: DoujinData = DoujinData())
-    {
-        fun currentPage(): DoujinPage
-        {
-            return pages[index]
-        }
-
-        fun nextPage(): DoujinPage
-        {
-            if (index < pages.lastIndex) return pages[++index]
-            return currentPage()
-        }
-
-        fun previousPage(): DoujinPage
-        {
-            if (index > 0) return pages[--index]
-            return currentPage()
-        }
-
-        fun gotoPage(desiredIndex: Int): DoujinPage
-        {
-            if (desiredIndex in 0..pages.lastIndex) index = desiredIndex
-            return currentPage()
-        }
-    }
-
-    data class DoujinPage(val embedBuilder: EmbedBuilder, val files: List<Path> = emptyList())
+//    data class Doujin(val pages: List<DoujinPage>, var index: Int = 0, var doujinData: DoujinData = DoujinData())
+//    {
+//        fun currentPage(): DoujinPage
+//        {
+//            return pages[index]
+//        }
+//
+//        fun nextPage(): DoujinPage
+//        {
+//            if (index < pages.lastIndex) return pages[++index]
+//            return currentPage()
+//        }
+//
+//        fun previousPage(): DoujinPage
+//        {
+//            if (index > 0) return pages[--index]
+//            return currentPage()
+//        }
+//
+//        fun gotoPage(desiredIndex: Int): DoujinPage
+//        {
+//            if (desiredIndex in 0..pages.lastIndex) index = desiredIndex
+//            return currentPage()
+//        }
+//    }
+//
+//    data class DoujinPage(val embedBuilder: EmbedBuilder, val files: List<Path> = emptyList())
 
     data class DoujinData(
         var name: String = "Unnamed",
