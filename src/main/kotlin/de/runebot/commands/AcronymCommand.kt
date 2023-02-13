@@ -42,7 +42,7 @@ object AcronymCommand : MessageCommandInterface
         val input =
             if (args.size > 1) args.drop(1).joinToString(separator = " ")
             else event.message.referencedMessage?.content
-                ?: Util.sendMessage(event, "`help acronym`").run { return }
+                ?: Util.sendMessage(event, "`${HelpCommand.commandExample} acronym`").run { return }
 
         Util.sendMessage(
             event,
