@@ -16,6 +16,7 @@ object Registry
         DxDBehavior,
         DoggoBehaviour,
         SixtyNineBehavior,
+        RawrBehaviour,
     )
 
     val messageCommands = listOf<MessageCommandInterface>(
