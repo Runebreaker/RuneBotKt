@@ -4,15 +4,18 @@ on:
     workflows: ["Docker Image CI"]
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
 
   start:
-    name: executing remote ssh commands using ssh key
-    uses: appleboy/ssh-action@v0.1.7
-    with:
-      host: ${{ secrets.HOST }}
-      username: ${{ secrets.USERNAME }}
-      key: ${{ secrets.KEY }}
-      port: ${{ secrets.PORT }}
-      script: ./start_runebot.sh
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using ssh key
+      uses: appleboy/ssh-action@v0.1.7
+      with:
+       host: ${{ secrets.HOST }}
+       username: ${{ secrets.USERNAME }}
+       key: ${{ secrets.KEY }}
+       port: ${{ secrets.PORT }}
+       script: ./start_runebot.sh
