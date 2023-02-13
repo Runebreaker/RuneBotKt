@@ -44,7 +44,10 @@ object Registry
     init
     {
         messageCommands.forEach { cmd ->
-            cmd.names.forEach { name -> commandMap[name] = cmd }
+            cmd.names.forEach { name ->
+                if (commandMap.containsKey(name)) error("$name is already registered for ${cmd.names}")
+                commandMap[name] = cmd
+            }
         }
     }
 
