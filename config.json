@@ -11,9 +11,9 @@
     "the": "te"
   },
   "guildConfigs": {
-    902174272456376361: {
+    "902174272456376361": {
       "channelConfigs": {
-        902174273215533099: {
+        "902174273215533099": {
           "behaviourEnables": [
             "RedditBehavior",
             "TechnikBehavior",
@@ -24,6 +24,24 @@
             "DxDBehavior",
             "DoggoBehaviour",
             "SixtyNineBehavior"
+          ]
+        }
+      }
+    },
+    "1075041821744443442": {
+      "channelConfigs": {
+        "1075041821744443445": {
+          "behaviourEnables": [
+            "RedditBehavior",
+            "TechnikBehavior",
+            "FBehavior",
+            "StyleBehavior",
+            "ListenBehavior",
+            "LennyBehavior",
+            "DxDBehavior",
+            "DoggoBehaviour",
+            "SixtyNineBehavior",
+            "RawrBehaviour"
           ]
         }
       }

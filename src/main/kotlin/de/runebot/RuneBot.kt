@@ -40,7 +40,7 @@ object RuneBot
 
             kord.on<MessageCreateEvent> {
                 // return if author is a bot or undefined
-                if (message.author?.isBot != false) return@on
+                if (message.author?.id == kord.selfId) return@on
 
                 if (!Registry.handleMessageCommands(this)) Registry.handleBehaviors(this)
             }
