@@ -14,7 +14,8 @@ interface MessageCommandInterface
 
         suspend fun isAdmin(event: MessageCreateEvent): Boolean
         {
-            val adminRole = event.getGuild()?.getRoleOrNull(Snowflake(Config.getAdminRoleId(event.guildId?.value ?: return false) ?: return true))
+            if (event.member?.isOwner() == true) return true
+            val adminRole = event.getGuild()?.getRoleOrNull(Snowflake(Config.getAdminRoleId(event.guildId?.value ?: return false) ?: return false))
             var valid = false
             event.member?.roles?.collect {
                 if (it == adminRole)
