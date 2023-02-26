@@ -33,21 +33,21 @@ object ConfigCommand : MessageCommandInterface
         if (args.getOrNull(1) == "get")
         {
             val key = args.getOrNull(2) ?: return
-            event.message.channel.createMessage("`$key` is set to `${Config.getValue(key)}`")
+            event.message.channel.createMessage("`$key` is set to `${Config.getValue(event.guildId?.value ?: return, key)}`")
             return
         }
         if (args.getOrNull(1) == "set")
         {
             val key = args.getOrNull(2) ?: return
             val value = args.getOrNull(3) ?: ""
-            Config.storeValue(key, value)
-            event.message.channel.createMessage("`$key` is set to `${Config.getValue(key)}`")
+            Config.storeValue(event.guildId?.value ?: return, key, value)
+            event.message.channel.createMessage("`$key` is set to `${Config.getValue(event.guildId?.value ?: return, key)}`")
             return
         }
         if (args.getOrNull(1) == "reset")
         {
             val key = args.getOrNull(2) ?: return
-            Config.resetValue(key)
+            Config.resetValue(event.guildId?.value ?: return, key)
             event.message.channel.createMessage("`$key` has been reset.")
             return
         }
@@ -58,12 +58,12 @@ object ConfigCommand : MessageCommandInterface
 
             if (value == null)
             {
-                Config.resetRule(key)
+                Config.resetRule(event.guildId?.value ?: return, key)
                 event.message.channel.createMessage("Rule removed.")
             }
             else
             {
-                Config.storeRule(key, value)
+                Config.storeRule(event.guildId?.value ?: return, key, value)
                 event.message.channel.createMessage("Rule made.")
             }
             return

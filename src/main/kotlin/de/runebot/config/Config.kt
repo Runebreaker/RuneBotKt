@@ -6,8 +6,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
-import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 
 object Config
 {
@@ -17,69 +18,86 @@ object Config
         encodeDefaults = true
     }
 
-    private val config: ConfigStructure
-    private val pathToConfigFile: Path = Path("config.json")
-
-    private val defaultConfig = ConfigStructure(
-        keyValueStorage = mutableMapOf(),
-        uwurules = mutableMapOf(
-            "[lr]" to "w",
-            "[LR]" to "W",
-            "This" to "Tis",
-            "The" to "Te",
-            "this" to "tis",
-            "the" to "te"
-        )
-    )
+    private val configs: MutableMap<ULong, ConfigStructure> = mutableMapOf()
+    private val pathToConfigDir = Path("config/")
 
     init
     {
-        if (!Files.exists(pathToConfigFile))
+        if (Files.notExists(pathToConfigDir))
         {
-            Files.createFile(pathToConfigFile)
-            Files.writeString(pathToConfigFile, serializer.encodeToString(defaultConfig))
+            Files.createDirectory(pathToConfigDir)
         }
-        config = serializer.decodeFromString(pathToConfigFile.toFile().readText())
+
+        pathToConfigDir.listDirectoryEntries().forEach { path ->
+            configs[path.name.removeSuffix(".json").toULong()] = serializer.decodeFromString(path.toFile().readText())
+        }
+    }
+
+    fun setAdminRoleId(guild: ULong, adminRoleId: ULong)
+    {
+        getConfigForGuild(guild).adminRoleId = adminRoleId
+        storeConfigForGuild(guild)
+    }
+
+    fun getAdminRoleId(guild: ULong): ULong?
+    {
+        return getConfigForGuild(guild).adminRoleId
+    }
+
+    fun getConfigForGuild(id: ULong): ConfigStructure
+    {
+        return configs.getOrPut(id) { ConfigStructure() }
+    }
+
+    fun storeConfigForGuild(id: ULong)
+    {
+        val pathToGuildConfig = pathToConfigDir.resolve("$id.json")
+        if (Files.notExists(pathToGuildConfig))
+        {
+            Files.createFile(pathToGuildConfig)
+        }
+
+        Files.writeString(pathToGuildConfig, serializer.encodeToString(getConfigForGuild(id)))
     }
 
     //region KeyValueStorage
 
-    fun storeValue(key: String, value: String)
+    fun storeValue(guild: ULong, key: String, value: String)
     {
-        config.keyValueStorage[key] = value
-        saveToFile()
+        getConfigForGuild(guild).keyValueStorage[key] = value
+        storeConfigForGuild(guild)
     }
 
-    fun resetValue(key: String)
+    fun resetValue(guild: ULong, key: String)
     {
-        config.keyValueStorage.remove(key)
-        saveToFile()
+        getConfigForGuild(guild).keyValueStorage.remove(key)
+        storeConfigForGuild(guild)
     }
 
-    fun getValue(key: String): String?
+    fun getValue(guild: ULong, key: String): String?
     {
-        return config.keyValueStorage[key]
+        return getConfigForGuild(guild).keyValueStorage[key]
     }
 
     //endregion
 
     //region UwURules
 
-    fun storeRule(key: String, value: String)
+    fun storeRule(guild: ULong, key: String, value: String)
     {
-        config.uwurules[key] = value
-        saveToFile()
+        getConfigForGuild(guild).uwurules[key] = value
+        storeConfigForGuild(guild)
     }
 
-    fun resetRule(key: String)
+    fun resetRule(guild: ULong, key: String)
     {
-        config.uwurules.remove(key)
-        saveToFile()
+        getConfigForGuild(guild).uwurules.remove(key)
+        storeConfigForGuild(guild)
     }
 
-    fun getRules(): List<Rule>
+    fun getRules(guild: ULong): List<Rule>
     {
-        return config.uwurules.map { entry ->
+        return getConfigForGuild(guild).uwurules.map { entry ->
             Rule(entry.key, entry.value)
         }
     }
@@ -90,45 +108,37 @@ object Config
 
     fun storeEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String)
     {
-        config.guildConfigs.getOrPut(guild) { GuildConfig() }.channelConfigs.getOrPut(channel) { ChannelConfig() }.behaviourEnables.add(behaviour)
-        saveToFile()
+        getConfigForGuild(guild).behaviorSettings.getOrPut(channel) { mutableSetOf() }.add(behaviour)
+        storeConfigForGuild(guild)
     }
 
     fun resetEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
     {
-        val retVal = config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourEnables.remove(behaviour)
-        saveToFile()
+        val retVal = getConfigForGuild(guild).behaviorSettings[channel]?.remove(behaviour) ?: return false
+        storeConfigForGuild(guild)
         return retVal
     }
 
     fun getEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
     {
-        return config.guildConfigs.getOrElse(guild) { return false }.channelConfigs.getOrElse(channel) { return false }.behaviourEnables.contains(behaviour)
+        return getConfigForGuild(guild).behaviorSettings[channel]?.contains(behaviour) ?: return false
     }
 
     //endregion
-
-    private fun saveToFile()
-    {
-        Files.writeString(pathToConfigFile, serializer.encodeToString(config))
-    }
 }
 
 @Serializable
-class ConfigStructure(
-    val keyValueStorage: MutableMap<String, String> = mutableMapOf(),
+data class ConfigStructure(
+    var adminRoleId: ULong? = null,
+    var keyValueStorage: MutableMap<String, String> = mutableMapOf(),
     // For the UwU translations
-    val uwurules: MutableMap<String, String> = mutableMapOf(),
-    // Guilds structure: Guilds > Channels > Toggles
-    val guildConfigs: MutableMap<ULong, GuildConfig> = mutableMapOf()
-)
-
-@Serializable
-class ChannelConfig(
-    val behaviourEnables: MutableSet<String> = mutableSetOf()
-)
-
-@Serializable
-class GuildConfig(
-    val channelConfigs: MutableMap<ULong, ChannelConfig> = mutableMapOf()
+    var uwurules: MutableMap<String, String> = mutableMapOf(
+        "[lr]" to "w",
+        "[LR]" to "W",
+        "This" to "Tis",
+        "The" to "Te",
+        "this" to "tis",
+        "the" to "te"
+    ),
+    var behaviorSettings: MutableMap<ULong, MutableSet<String>> = mutableMapOf(), // key is Channel Snowflake, value is list of enabled behaviors
 )

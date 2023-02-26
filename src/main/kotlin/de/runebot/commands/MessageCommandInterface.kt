@@ -1,7 +1,8 @@
 package de.runebot.commands
 
-import de.runebot.RuneBot
 import de.runebot.Util
+import de.runebot.config.Config
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
@@ -13,7 +14,7 @@ interface MessageCommandInterface
 
         suspend fun isAdmin(event: MessageCreateEvent): Boolean
         {
-            val adminRole = event.getGuild()?.getRoleOrNull(RuneBot.adminRoleSnowflake)
+            val adminRole = event.getGuild()?.getRoleOrNull(Snowflake(Config.getAdminRoleId(event.guildId?.value ?: return false) ?: return true))
             var valid = false
             event.member?.roles?.collect {
                 if (it == adminRole)

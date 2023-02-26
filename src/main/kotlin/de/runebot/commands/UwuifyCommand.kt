@@ -47,7 +47,7 @@ object UwuifyCommand : MessageCommandInterface
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
         ruleset.clear()
-        ruleset.addAll(Config.getRules())
+        ruleset.addAll(Config.getRules(event.guildId?.value ?: return))
 
         uwuify.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
     }
