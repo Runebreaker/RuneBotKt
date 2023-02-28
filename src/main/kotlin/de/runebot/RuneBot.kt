@@ -1,5 +1,6 @@
 package de.runebot
 
+import de.runebot.config.Config
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
@@ -35,8 +36,16 @@ object RuneBot
             Registry.messageCommands.forEach { it.prepare(kord) }
 
             kord.on<MessageCreateEvent> {
-                // return if author is a bot or undefined
-                if (message.author?.isBot != false) return@on
+                if (Config.getValue(this.guildId?.value ?: return@on, "interactsWithBots") == "true")
+                {
+                    // return if author is self or undefined
+                    if (message.author?.id == kord.selfId) return@on
+                }
+                else
+                {
+                    // return if author is a bot or undefined
+                    if (message.author?.isBot != false) return@on
+                }
 
                 if (!Registry.handleMessageCommands(this)) Registry.handleBehaviors(this)
             }
