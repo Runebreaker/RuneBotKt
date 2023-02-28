@@ -22,25 +22,20 @@ object HelpCommand : MessageCommandInterface
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
-        val sb = StringBuilder()
-
         // show overview
         if (args.size < 2)
         {
-            sb.append("Available commands:")
-            Registry.messageCommands
+            Util.sendMessage(event, Registry.messageCommands
                 .filter { !it.needsAdmin || MessageCommandInterface.isAdmin(event) }
-                .forEach { cmd ->
-                    sb.append("\n")
-                    sb.append(cmd.names.joinToString(prefix = "`", separator = "`|`", postfix = "`: ") { MessageCommandInterface.prefix + it })
-                    sb.append(cmd.shortHelpText)
-                }
+                .sortedBy { it.names.first() }
+                .joinToString(prefix = "Available commands:${System.lineSeparator()}", separator = System.lineSeparator()) { cmd ->
+                    cmd.names.joinToString(prefix = "`", separator = "`|`", postfix = "`: ") { MessageCommandInterface.prefix + it } + cmd.shortHelpText
+                })
         }
+        // show specific help text
         else
         {
-            sb.append(Registry.messageCommands.find { args.getOrNull(1) in it.names }?.longHelpText ?: return)
+            Util.sendMessage(event, Registry.messageCommands.find { args.getOrNull(1) in it.names }?.longHelpText ?: "command not found!")
         }
-
-        Util.sendMessage(event, sb.toString())
     }
 }
