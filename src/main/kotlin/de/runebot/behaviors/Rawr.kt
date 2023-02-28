@@ -3,7 +3,7 @@ package de.runebot.behaviors
 import de.runebot.Util
 import dev.kord.core.event.message.MessageCreateEvent
 
-object RawrBehaviour : Behavior
+object Rawr : Behavior
 {
     override suspend fun run(content: String, messageCreateEvent: MessageCreateEvent)
     {

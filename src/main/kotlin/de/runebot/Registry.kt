@@ -7,16 +7,16 @@ import dev.kord.core.event.message.MessageCreateEvent
 object Registry
 {
     val behaviors = listOf<Behavior>(
-        RedditBehavior,
-        TechnikBehavior,
-        FBehavior,
-        StyleBehavior,
-        ListenBehavior,
-        LennyBehavior,
-        DxDBehavior,
-        DoggoBehaviour,
-        SixtyNineBehavior,
-        RawrBehaviour,
+        Reddit,
+        Technik,
+        F,
+        Style,
+        Listen,
+        Lenny,
+        DxD,
+        Doggo,
+        SixtyNine,
+        Rawr,
     )
 
     val messageCommands = listOf<MessageCommandInterface>(
@@ -40,6 +40,7 @@ object Registry
         FrenchifyCommand,
         AcronymCommand,
         AdminRoleCommand,
+        BehaviorCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()

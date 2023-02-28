@@ -1,14 +1,15 @@
 package de.runebot.behaviors
 
+import de.runebot.Util
 import dev.kord.core.event.message.MessageCreateEvent
 
-object TestBehavior : Behavior
+object Lenny : Behavior
 {
     override suspend fun run(content: String, messageCreateEvent: MessageCreateEvent)
     {
-        if (content.contains("test", ignoreCase = true))
+        if ("lenny" in content.lowercase())
         {
-            messageCreateEvent.message.channel.createMessage("EKO FRESH?")
+            Util.sendMessage(messageCreateEvent, "( ͡° ͜ʖ ͡°)")
         }
     }
 }
