@@ -12,7 +12,7 @@ object AdminChannelCommand : MessageCommandInterface
     private val set = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("set", "s"), Pair("set", "Sets the current channel as admin channel.")),
         { event, args, _ ->
-            Config.storeValue("adminChannel", event.message.channel.id.toString())
+            Config.storeValue(event.guildId?.value ?: return@Subcommand, "adminChannel", event.message.channel.id.toString())
             Util.sendMessage(event, "Admin channel set!")
         },
         emptyList()
@@ -20,7 +20,7 @@ object AdminChannelCommand : MessageCommandInterface
     private val adminchannel = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(names, Pair("adminchannel", "Sends a message in the currently set admin channel.")),
         { event, args, _ ->
-            Config.getValue("adminChannel")?.let { channelID ->
+            Config.getValue(event.guildId?.value ?: return@Subcommand, "adminChannel")?.let { channelID ->
                 Util.sendMessage(MessageChannelBehavior(Snowflake(channelID), kord), "This is the admin channel.")
             } ?: Util.sendMessage(event, "Admin channel has not been set yet!")
         },

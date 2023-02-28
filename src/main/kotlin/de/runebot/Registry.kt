@@ -39,6 +39,7 @@ object Registry
         AnilistCommand,
         FrenchifyCommand,
         AcronymCommand,
+        AdminRoleCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
