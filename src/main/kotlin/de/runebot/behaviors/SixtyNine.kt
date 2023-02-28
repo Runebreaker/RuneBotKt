@@ -5,7 +5,7 @@ import dev.kord.core.event.message.MessageCreateEvent
 import kotlin.text.RegexOption.DOT_MATCHES_ALL
 import kotlin.text.RegexOption.IGNORE_CASE
 
-object SixtyNineBehavior : Behavior
+object SixtyNine : Behavior
 {
     val regexes = listOf(
         Regex("(s|S).*(i|I).*(x|X).*(t|T).*(y|Y).*(n|N).*(i|I).*(n|N).*(e|E)", DOT_MATCHES_ALL) to "sixtynine",

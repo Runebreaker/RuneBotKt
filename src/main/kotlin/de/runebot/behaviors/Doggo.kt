@@ -3,7 +3,7 @@ package de.runebot.behaviors
 import de.runebot.Util
 import dev.kord.core.event.message.MessageCreateEvent
 
-object DoggoBehaviour : Behavior
+object Doggo : Behavior
 {
     val doggoGif = "https://media.discordapp.net/attachments/824357369559121920/914912078626693130/656954222046347274.gif"
 

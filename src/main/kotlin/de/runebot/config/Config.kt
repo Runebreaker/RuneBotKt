@@ -1,6 +1,7 @@
 package de.runebot.config
 
 import de.runebot.Util.Rule
+import de.runebot.commands.BehaviorCommand
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -104,24 +105,40 @@ object Config
 
     //endregion
 
-    //region DisabledBehaviourChannels
+    //region Behaviors
 
-    fun storeEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String)
+    fun enableBehavior(guild: ULong, channel: ULong, behavior: String)
     {
-        getConfigForGuild(guild).behaviorSettings.getOrPut(channel) { mutableSetOf() }.add(behaviour)
+        getConfigForGuild(guild).behaviorSettings.getOrPut(channel) { mutableSetOf() }.add(behavior)
         storeConfigForGuild(guild)
     }
 
-    fun resetEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
+    fun enableAllBehaviors(guild: ULong, channel: ULong)
     {
-        val retVal = getConfigForGuild(guild).behaviorSettings[channel]?.remove(behaviour) ?: return false
+        getConfigForGuild(guild).behaviorSettings[channel] = BehaviorCommand.behaviorNames.toMutableSet()
         storeConfigForGuild(guild)
-        return retVal
     }
 
-    fun getEnabledBehaviour(guild: ULong, channel: ULong, behaviour: String): Boolean
+    fun disableBehavior(guild: ULong, channel: ULong, behavior: String)
     {
-        return getConfigForGuild(guild).behaviorSettings[channel]?.contains(behaviour) ?: return false
+        getConfigForGuild(guild).behaviorSettings[channel]?.remove(behavior)
+        storeConfigForGuild(guild)
+    }
+
+    fun disableAllBehaviors(guild: ULong, channel: ULong)
+    {
+        getConfigForGuild(guild).behaviorSettings[channel] = mutableSetOf()
+        storeConfigForGuild(guild)
+    }
+
+    fun isBehaviorEnabled(guild: ULong, channel: ULong, behavior: String): Boolean
+    {
+        return getConfigForGuild(guild).behaviorSettings[channel]?.contains(behavior) ?: return false
+    }
+
+    fun getEnabledBehaviors(guild: ULong, channel: ULong): Set<String>
+    {
+        return getConfigForGuild(guild).behaviorSettings[channel]?.toSet() ?: emptySet()
     }
 
     //endregion
