@@ -17,6 +17,7 @@ object Registry
         Doggo,
         SixtyNine,
         Rawr,
+        Frequency,
     )
 
     val messageCommands = listOf<MessageCommandInterface>(
@@ -41,6 +42,7 @@ object Registry
         AcronymCommand,
         AdminRoleCommand,
         BehaviorCommand,
+        FrequencyCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()
