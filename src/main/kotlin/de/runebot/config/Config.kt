@@ -155,7 +155,9 @@ data class ConfigStructure(
         "This" to "Tis",
         "The" to "Te",
         "this" to "tis",
-        "the" to "te"
+        "the" to "te",
+        "No" to "Nyo",
+        "no" to "nyo"
     ),
     var behaviorSettings: MutableMap<ULong, MutableSet<String>> = mutableMapOf(), // key is Channel Snowflake, value is list of enabled behaviors
 )
