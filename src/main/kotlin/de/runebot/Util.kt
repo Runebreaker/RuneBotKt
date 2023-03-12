@@ -8,6 +8,7 @@ import dev.kord.common.exception.RequestException
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.cache.data.*
+import dev.kord.core.entity.Embed
 import dev.kord.core.entity.Message
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.exception.EntityNotFoundException
@@ -289,18 +290,6 @@ object Util
         val catalogue: Catalogue = Catalogue()
 
         /**
-         * Adds a page to the catalogue and returns it for further modification.
-         * @return The created CataloguePage.
-         * @param atIndex (Optional) Specify at which index the page should be inserted - always appends on default.
-         */
-        fun addPage(atIndex: Int = catalogue.pages.size): CataloguePage
-        {
-            // Should not throw an exception, since the list is always expanded first
-            catalogue.pages.add(CataloguePage())
-            return catalogue.pages.last()
-        }
-
-        /**
          * Pagination system for CataloguePages.
          */
         data class Catalogue(val pages: MutableList<CataloguePage> = mutableListOf(), var index: Int = 0)
@@ -443,6 +432,16 @@ object Util
                 }
                 fields.addAll(field)
                 data = data.copy(fields = Optional.Value(fields))
+            }
+
+            /**
+             * Applies all changed values to the embedBuilder.
+             */
+            fun apply()
+            {
+                RuneBot.kord?.let { kord ->
+                    Embed(data, kord).apply(embedBuilder)
+                } ?: error("Kord not found.")
             }
         }
     }
