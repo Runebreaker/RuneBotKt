@@ -2,6 +2,10 @@ package de.runebot.database
 
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.date
+import java.time.LocalDate
+
+//region Main DB
 
 object UserCollections : Table()
 {
@@ -26,4 +30,24 @@ object Tags : Table()
 
     override val primaryKey: PrimaryKey
         get() = PrimaryKey(name)
+}
+
+//endregion
+
+//region Doujin DB
+
+object Doujins : Table()
+{
+    val number: Column<Int> = integer("number")
+    var name: Column<String> = text("name")
+    var original_name: Column<String> = text("original_name")
+    val parodies: Column<String> = text("parodies")
+    val characters: Column<String> = text("characters")
+    val tags: Column<String> = text("tags")
+    val artists: Column<String> = text("artists")
+    val groups: Column<String> = text("groups")
+    val languages: Column<String> = text("languages")
+    val categories: Column<String> = text("categories")
+    var page_number: Column<Int> = integer("page_number")
+    var upload_date: Column<LocalDate> = date("upload_date")
 }
