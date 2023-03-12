@@ -6,7 +6,7 @@ import info.debatty.java.stringsimilarity.Cosine
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-object DxDBehavior : Behavior
+object DxD : Behavior
 {
     val lines: List<String>
     val precomputedLines: List<Map<String, Int>>
@@ -14,7 +14,7 @@ object DxDBehavior : Behavior
 
     init
     {
-        DxDBehavior::class.java.getResourceAsStream("/HighSchoolDxD.txt").use { stream ->
+        DxD::class.java.getResourceAsStream("/HighSchoolDxD.txt").use { stream ->
             InputStreamReader(stream!!, Charsets.UTF_8).use { inputReader ->
                 BufferedReader(inputReader).use { bufferedReader ->
                     lines = bufferedReader.lines().toList().filter { it.length > comparator.k }

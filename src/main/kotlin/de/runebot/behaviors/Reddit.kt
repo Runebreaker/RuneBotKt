@@ -3,7 +3,7 @@ package de.runebot.behaviors
 import de.runebot.Util
 import dev.kord.core.event.message.MessageCreateEvent
 
-object RedditBehavior : Behavior
+object Reddit : Behavior
 {
     private val regex = Regex("(?<=(?:^|\\s))[rR]\\/[\\w\\d]+")
 

@@ -1,6 +1,6 @@
 package de.runebot
 
-import dev.kord.common.entity.Snowflake
+import de.runebot.config.Config
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
@@ -16,7 +16,6 @@ object RuneBot
     val scope: CoroutineScope = CoroutineScope(SupervisorJob())
 
     val token = System.getenv()["BOT_TOKEN"] ?: error("error reading bot token")
-    val adminRoleSnowflake = Snowflake(System.getenv()["ADMIN_ROLE_ID"]?.toULong() ?: error("error reading admin role id"))
     var kord: Kord? = null
         private set
 
@@ -33,14 +32,20 @@ object RuneBot
     {
         kord = Kord(token)
 
-        println("Starting RuneBot with admin role id $adminRoleSnowflake...")
-
         kord?.let { kord ->
             Registry.messageCommands.forEach { it.prepare(kord) }
 
             kord.on<MessageCreateEvent> {
-                // return if author is a bot or undefined
-                if (message.author?.isBot != false) return@on
+                if (Config.getValue(this.guildId?.value ?: return@on, "interactsWithBots") == "true")
+                {
+                    // return if author is self or undefined
+                    if (message.author?.id == kord.selfId) return@on
+                }
+                else
+                {
+                    // return if author is a bot or undefined
+                    if (message.author?.isBot != false) return@on
+                }
 
                 if (!Registry.handleMessageCommands(this)) Registry.handleBehaviors(this)
             }

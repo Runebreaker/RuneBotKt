@@ -1,16 +1,16 @@
 package de.runebot.behaviors
 
-import de.runebot.Util
+import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.x.emoji.Emojis
 
-object FBehavior : Behavior
+object Listen : Behavior
 {
     override suspend fun run(content: String, messageCreateEvent: MessageCreateEvent)
     {
-        if (content.equals("F", ignoreCase = true) || content == Emojis.regionalIndicatorF.unicode)
+        if (content.equals("listen", ignoreCase = true))
         {
-            Util.sendMessage(messageCreateEvent, content)
+            messageCreateEvent.message.addReaction(ReactionEmoji.Unicode(Emojis.ear.unicode))
         }
     }
 }

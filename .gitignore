@@ -196,3 +196,4 @@ gradle-app.setting
 /icons/
 /dbs/db.sqlite
 /dbs/doujinInfos.sqlite
+/config/
