@@ -18,14 +18,17 @@ object DB
     private val serializer = Json
     private var mainDB: Database
     private var doujinDB: Database
+    private var ghtTagDB: Database
 
     init
     {
         val pathToMainDB = Path("dbs/db.sqlite")
         val pathToDoujinDB = Path("dbs/doujinInfos.sqlite")
+        val pathToGhtTags = Path("dbs/ghtTagDB.sqlite")
 
         mainDB = Database.connect("jdbc:sqlite:$pathToMainDB")
         doujinDB = Database.connect("jdbc:sqlite:$pathToDoujinDB")
+        ghtTagDB = Database.connect("jdbc:sqlite:$pathToGhtTags")
 
         transaction(mainDB) {
             SchemaUtils.create(UserCollections, Timers, Tags)
@@ -33,6 +36,10 @@ object DB
 
         transaction(doujinDB) {
             SchemaUtils.create(Doujins)
+        }
+
+        transaction(ghtTagDB) {
+            SchemaUtils.create(Tags)
         }
     }
 
@@ -141,11 +148,11 @@ object DB
         }
     }
 
-    fun getTag(name: String): String?
+    fun getTag(name: String, fromGhtTags: Boolean = false): String?
     {
         try
         {
-            return transaction(mainDB) {
+            return transaction(if (fromGhtTags) ghtTagDB else mainDB) {
                 return@transaction Tags.select {
                     Tags.name eq name
                 }.map { it[Tags.message] }.firstOrNull()
