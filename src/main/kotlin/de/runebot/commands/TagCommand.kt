@@ -84,6 +84,17 @@ object TagCommand : MessageCommandInterface
         },
         emptyList()
     )
+    private val ght = MessageCommandInterface.Subcommand(
+        MessageCommandInterface.CommandDescription(listOf("ght"), Pair("ght <tag name>", "Outputs the tag stored under the specified name from the GHT DB.")),
+        { event, args, _ ->
+            event.message.author?.let {
+                DB.getTag(args[0], true)?.let {
+                    Util.sendMessage(event, it)
+                } ?: Util.sendMessage(event, "Tag not found.")
+            }
+        },
+        emptyList()
+    )
     private val tag = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("tag", "t"), Pair("tag <tag name>", "Outputs the tag stored under the specified name.")),
         { event, args, _ ->
@@ -97,7 +108,8 @@ object TagCommand : MessageCommandInterface
             create,
             update,
             delete,
-            owner
+            owner,
+            ght
         )
     )
 
