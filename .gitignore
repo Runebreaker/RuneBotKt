@@ -196,4 +196,5 @@ gradle-app.setting
 /icons/
 /dbs/db.sqlite
 /dbs/doujinInfos.sqlite
+/dbs/ghtTagDB.sqlite
 /config/
