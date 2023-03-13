@@ -382,6 +382,17 @@ object Util
                 files["Image"] = path
             }
 
+            fun setImageAsURL(url: String)
+            {
+                val imageData = EmbedImageData(
+                    url = Optional.Value(url),
+                    proxyUrl = Optional.Missing(),
+                    height = OptionalInt.Missing,
+                    width = OptionalInt.Missing
+                )
+                data = data.copy(image = Optional.Value(imageData))
+            }
+
             fun setThumbnail(path: Path)
             {
                 val thumbnailData = EmbedThumbnailData(
@@ -392,6 +403,17 @@ object Util
                 )
                 data = data.copy(thumbnail = Optional.Value(thumbnailData))
                 files["Thumbnail"] = path
+            }
+
+            fun setThumbnailAsURL(url: String)
+            {
+                val thumbnailData = EmbedThumbnailData(
+                    url = Optional.Value(url),
+                    proxyUrl = Optional.Missing(),
+                    height = OptionalInt.Missing,
+                    width = OptionalInt.Missing
+                )
+                data = data.copy(thumbnail = Optional.Value(thumbnailData))
             }
 
             fun setVideo(url: String)
