@@ -157,6 +157,38 @@ object DB
         }
     }
 
+    fun getTagOwnerId(name: String): Long?
+    {
+        try
+        {
+            return transaction(mainDB) {
+                return@transaction Tags.select {
+                    Tags.name eq name
+                }.map { it[Tags.creatorId] }.firstOrNull()
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    fun getTagsOfOwner(ownerID: Long): List<String>?
+    {
+        try
+        {
+            return transaction(mainDB) {
+                return@transaction Tags.select {
+                    Tags.creatorId eq ownerID
+                }.map { it[Tags.name] }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return null
+        }
+    }
+
     private fun checkForTagCreatorAndEntry(name: String, creator: Long): DBResponse
     {
         Tags.select {
