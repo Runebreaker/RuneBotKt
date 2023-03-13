@@ -1,9 +1,14 @@
 package de.runebot.commands
 
 import de.runebot.Util
+import de.runebot.Util.EmbedCatalogue.CataloguePage
 import de.runebot.database.DB
 import de.runebot.database.DBResponse
+import dev.kord.common.entity.Snowflake
+import dev.kord.common.entity.optional.OptionalBoolean
 import dev.kord.core.Kord
+import dev.kord.core.behavior.channel.createMessage
+import dev.kord.core.cache.data.EmbedFieldData
 import dev.kord.core.event.message.MessageCreateEvent
 
 object TagCommand : MessageCommandInterface
@@ -51,6 +56,34 @@ object TagCommand : MessageCommandInterface
         },
         emptyList()
     )
+    private val owner = MessageCommandInterface.Subcommand(
+        MessageCommandInterface.CommandDescription(listOf("owner", "o"), Pair("owner <tag name>", "Shows who owns the tag.")),
+        { event, args, _ ->
+            event.message.author?.let {
+                DB.getTagOwnerId(args[0])?.let { userId ->
+                    event.getGuild()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
+                        val ownerTags = DB.getTagsOfOwner(userId)?.joinToString(", ") ?: "There was a problem receiving the owners other tags."
+
+                        val ownerPage = CataloguePage()
+                        ownerPage.setTitle(ownerMember.displayName)
+                        ownerPage.setDescription(ownerMember.tag)
+                        ownerMember.avatar?.let { icon ->
+                            ownerPage.setThumbnailAsURL(icon.url)
+                        } ?: ownerPage.setThumbnailAsURL(ownerMember.defaultAvatar.url)
+                        ownerPage.addFields(EmbedFieldData("Owned tags:", ownerTags, OptionalBoolean.Value(false)))
+                        ownerPage.apply()
+
+                        event.message.channel.createMessage {
+                            this.apply {
+                                embeds.add(ownerPage.embedBuilder)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        emptyList()
+    )
     private val tag = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("tag", "t"), Pair("tag <tag name>", "Outputs the tag stored under the specified name.")),
         { event, args, _ ->
@@ -63,7 +96,8 @@ object TagCommand : MessageCommandInterface
         listOf(
             create,
             update,
-            delete
+            delete,
+            owner
         )
     )
 
