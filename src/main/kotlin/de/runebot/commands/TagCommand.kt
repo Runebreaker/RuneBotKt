@@ -127,7 +127,7 @@ object TagCommand : MessageCommandInterface
         get() = tag.toTree().toString()
     private lateinit var kord: Kord
 
-    private val allowedTagNamePattern = Regex("[\\w\\d]+")
+    private val allowedTagNamePattern = Regex("[\\w\\däüöß]+")
 
     override fun prepare(kord: Kord)
     {
