@@ -11,6 +11,7 @@ import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.cache.data.EmbedFieldData
 import dev.kord.core.entity.Member
 import dev.kord.core.event.message.MessageCreateEvent
+import kotlinx.coroutines.flow.toList
 
 object TagCommand : MessageCommandInterface
 {
@@ -94,8 +95,11 @@ object TagCommand : MessageCommandInterface
     private val list = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("list", "l"), Pair("list", "Lists all of your tags.")),
         { event, args, _ ->
-            event.message.author?.let {
-                event.getGuild()?.getMemberOrNull(Snowflake(it.id.value.toLong()))?.let { ownerMember ->
+            val mentions = event.message.mentionedUsers.toList()
+            val authors = mentions.ifEmpty { listOf(event.message.author) }.filterNotNull()
+
+            authors.forEach { user ->
+                event.getGuild()?.getMemberOrNull(Snowflake(user.id.value.toLong()))?.let { ownerMember ->
                     event.message.channel.createMessage {
                         this.apply {
                             embeds.add(createOwnerPage(ownerMember).embedBuilder)
