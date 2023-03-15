@@ -17,7 +17,13 @@ object TagCommand : MessageCommandInterface
         MessageCommandInterface.CommandDescription(listOf("create", "cr", "c"), Pair("create <tag name> <message>", "Creates a new tag.")),
         { event, args, _ ->
             event.message.author?.let {
-                when (DB.storeTag(args[0], args.subList(1, args.size).joinToString(" "), it.id.value.toLong()))
+                val tagName = args[0]
+                if (!allowedTagNamePattern.matches(tagName))
+                {
+                    Util.sendMessage(event, "Tag names can only be composed of letters and digits. This also means, that you can't use formatting for the name!")
+                    return@let
+                }
+                when (DB.storeTag(tagName, args.subList(1, args.size).joinToString(" "), it.id.value.toLong()))
                 {
                     DBResponse.SUCCESS -> Util.sendMessage(event, "Tag created successfully.")
                     else -> Util.sendMessage(event, "Tag couldn't be created.")
@@ -120,6 +126,8 @@ object TagCommand : MessageCommandInterface
     override val longHelpText: String
         get() = tag.toTree().toString()
     private lateinit var kord: Kord
+
+    private val allowedTagNamePattern = Regex("[\\w\\d]+")
 
     override fun prepare(kord: Kord)
     {
