@@ -9,6 +9,7 @@ import dev.kord.common.entity.optional.OptionalBoolean
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.cache.data.EmbedFieldData
+import dev.kord.core.entity.Member
 import dev.kord.core.event.message.MessageCreateEvent
 
 object TagCommand : MessageCommandInterface
@@ -68,20 +69,9 @@ object TagCommand : MessageCommandInterface
             event.message.author?.let {
                 DB.getTagOwnerId(args[0])?.let { userId ->
                     event.getGuild()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
-                        val ownerTags = DB.getTagsOfOwner(userId)?.joinToString(", ") ?: "There was a problem receiving the owners other tags."
-
-                        val ownerPage = CataloguePage()
-                        ownerPage.setTitle(ownerMember.displayName)
-                        ownerPage.setDescription(ownerMember.tag)
-                        ownerMember.avatar?.let { icon ->
-                            ownerPage.setThumbnailAsURL(icon.url)
-                        } ?: ownerPage.setThumbnailAsURL(ownerMember.defaultAvatar.url)
-                        ownerPage.addFields(EmbedFieldData("Owned tags:", ownerTags, OptionalBoolean.Value(false)))
-                        ownerPage.apply()
-
                         event.message.channel.createMessage {
                             this.apply {
-                                embeds.add(ownerPage.embedBuilder)
+                                embeds.add(createOwnerPage(ownerMember).embedBuilder)
                             }
                         }
                     }
@@ -101,6 +91,21 @@ object TagCommand : MessageCommandInterface
         },
         emptyList()
     )
+    private val list = MessageCommandInterface.Subcommand(
+        MessageCommandInterface.CommandDescription(listOf("list", "l"), Pair("list", "Lists all of your tags.")),
+        { event, args, _ ->
+            event.message.author?.let {
+                event.getGuild()?.getMemberOrNull(Snowflake(it.id.value.toLong()))?.let { ownerMember ->
+                    event.message.channel.createMessage {
+                        this.apply {
+                            embeds.add(createOwnerPage(ownerMember).embedBuilder)
+                        }
+                    }
+                }
+            }
+        },
+        emptyList()
+    )
     private val tag = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("tag", "t"), Pair("tag <tag name>", "Outputs the tag stored under the specified name.")),
         { event, args, _ ->
@@ -115,7 +120,8 @@ object TagCommand : MessageCommandInterface
             update,
             delete,
             owner,
-            ght
+            ght,
+            list
         )
     )
 
@@ -143,5 +149,19 @@ object TagCommand : MessageCommandInterface
         }
 
         if (names.contains(args[0].substring(1))) tag.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
+    }
+
+    private fun createOwnerPage(ownerMember: Member): CataloguePage
+    {
+        val ownerTags = DB.getTagsOfOwner(ownerMember.id.value.toLong())?.joinToString(", ") ?: "There was a problem receiving the owners other tags."
+        val ownerPage = CataloguePage()
+        ownerPage.setTitle(ownerMember.displayName)
+        ownerPage.setDescription(ownerMember.tag)
+        ownerMember.avatar?.let { icon ->
+            ownerPage.setThumbnailAsURL(icon.url)
+        } ?: ownerPage.setThumbnailAsURL(ownerMember.defaultAvatar.url)
+        ownerPage.addFields(EmbedFieldData("Owned tags:", ownerTags, OptionalBoolean.Value(false)))
+        ownerPage.apply()
+        return ownerPage
     }
 }
