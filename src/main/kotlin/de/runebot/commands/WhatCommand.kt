@@ -49,6 +49,7 @@ object WhatCommand : MessageCommandInterface
             val content = referencedMessage.content
             val index = args.getOrNull(1)?.toIntOrNull() ?: 0
 
+            // searches the message for emojis
             val foundEmojis = findEmojis(content, event.guildId ?: Snowflake(0))
             if (foundEmojis.isEmpty())
             {
@@ -56,11 +57,17 @@ object WhatCommand : MessageCommandInterface
                 return
             }
 
+            // creates background, should never fail
             val background = withContext(Dispatchers.IO) {
                 ImageIO.read(WhatCommand::class.java.getResourceAsStream("/IDSB.jpg"))
             }
             val graphics = background.createGraphics()
-            val emoji = loadEmoji(foundEmojis[index] ?: emptyList()) ?: return@let
+
+            // loads image of emoji
+            val emoji = loadEmoji(foundEmojis[index] ?: emptyList())
+                ?: Util.sendMessage(event, "No image found for this emoji!").run { return }
+
+            // author avatar is skipped if no image is found
             referencedMessage.getAuthorAsMember()?.avatar?.url?.let { url ->
                 ImageIO.read(URL(url))
             }?.let {
@@ -70,11 +77,13 @@ object WhatCommand : MessageCommandInterface
                 cropG.drawImage(it, 0, 0, 250, 250, null)
                 graphics.drawImage(circleBuffer, 257 - 125, 289 - 125, 250, 250, null) // face
             }
-            graphics.drawImage(emoji, 512 - 60, 275 - 60, 120, 120, null) // bubble
-            graphics.drawImage(emoji, 243 - 17, 919 - 17, 33, 33, null) // response
+
+            graphics.drawImage(emoji, 512 - 60, 275 - 60, 120, 120, null) // emoji in speech bubble
+            graphics.drawImage(emoji, 243 - 17, 919 - 17, 33, 33, null) // emoji in response text
             Util.sendImage(event.message.channel, "what.jpg", background)
             return
         }
+        // if anything else fails, it must be user-error
         Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`")
     }
 
