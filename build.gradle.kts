@@ -36,6 +36,8 @@ dependencies {
     implementation("org.jclarion:image4j:0.7")
 
     implementation("org.jetbrains.exposed:exposed-java-time:0.38.2")
+
+    implementation("org.openpnp:opencv:4.7.0-0")
 }
 
 tasks.test {

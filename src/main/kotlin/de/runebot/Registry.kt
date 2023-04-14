@@ -41,6 +41,7 @@ object Registry
         AcronymCommand,
         AdminRoleCommand,
         BehaviorCommand,
+        CvCommand,
     )
 
     val commandMap = mutableMapOf<String, MessageCommandInterface>()

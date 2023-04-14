@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import nu.pattern.OpenCV
 
 object RuneBot
 {
@@ -22,6 +23,8 @@ object RuneBot
     @JvmStatic
     fun main(args: Array<String>)
     {
+        OpenCV.loadShared()
+
         runBlocking {
             launch { bot() }
             launch { Taskmaster.run() }
