@@ -12,8 +12,10 @@ import dev.kord.core.entity.Embed
 import dev.kord.core.entity.Message
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.exception.EntityNotFoundException
-import dev.kord.rest.NamedFile
 import dev.kord.rest.builder.message.EmbedBuilder
+import dev.kord.rest.builder.message.create.addFile
+import io.ktor.client.request.forms.*
+import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -24,7 +26,6 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import java.net.URL
 import java.nio.channels.Channels
-import java.nio.file.Files
 import java.nio.file.Path
 import javax.imageio.ImageIO
 import kotlin.random.Random
@@ -108,24 +109,13 @@ object Util
 
     suspend fun sendImage(channel: MessageChannelBehavior, path: Path)
     {
-        sendImage(channel, path.fileName.toString(), withContext(Dispatchers.IO) {
-            Files.newInputStream(path)
-        })
+        channel.createMessage { this.addFile(path) }
     }
 
     suspend fun sendImage(channel: MessageChannelBehavior, fileName: String, inputStream: InputStream)
     {
-        channel.createMessage { this.files.add(NamedFile(fileName, inputStream)) }
-    }
-
-    fun downloadFromUrl(url: URL, outputName: String)
-    {
-        url.openStream().use {
-            Channels.newChannel(it).use { rbc ->
-                FileOutputStream(outputName).use { fos ->
-                    fos.channel.transferFrom(rbc, 0, Long.MAX_VALUE)
-                }
-            }
+        channel.createMessage {
+            this.addFile(fileName, ChannelProvider { inputStream.toByteReadChannel() })
         }
     }
 
@@ -139,7 +129,18 @@ object Util
         sendImage(channel, fileName, inputStream)
     }
 
-    // bullshittery begins here
+    fun downloadFromUrl(url: URL, outputName: String)
+    {
+        url.openStream().use {
+            Channels.newChannel(it).use { rbc ->
+                FileOutputStream(outputName).use { fos ->
+                    fos.channel.transferFrom(rbc, 0, Long.MAX_VALUE)
+                }
+            }
+        }
+    }
+
+    // region bullshit
     suspend fun sendHero(event: MessageCreateEvent)
     {
         val someEmbed = EmbedBuilder().apply {
@@ -177,6 +178,7 @@ object Util
 
         event.message.channel.createMessage { embeds.add(someEmbed) }
     }
+    // endregion
 
     fun replaceUsingRuleset(input: String, ruleset: MutableSet<Rule>): Pair<String, Int>
     {

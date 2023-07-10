@@ -68,8 +68,8 @@ object WhatCommand : MessageCommandInterface
                 ?: Util.sendMessage(event, "No image found for this emoji!").run { return }
 
             // author avatar is skipped if no image is found
-            referencedMessage.getAuthorAsMember()?.avatar?.url?.let { url ->
-                ImageIO.read(URL(url))
+            referencedMessage.getAuthorAsMemberOrNull()?.avatar?.cdnUrl?.let { cdnUrl ->
+                ImageIO.read(URL(cdnUrl.toUrl()))
             }?.let {
                 val circleBuffer = BufferedImage(250, 250, BufferedImage.TYPE_INT_ARGB)
                 val cropG = circleBuffer.createGraphics()

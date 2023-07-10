@@ -21,7 +21,7 @@ object ImpostorCommand : MessageCommandInterface
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
         val impostors = mutableListOf<String>()
-        event.getGuild()?.members?.collect { member ->
+        event.getGuildOrNull()?.members?.collect { member ->
             member.roles.collect { role ->
                 if (role.name.equals("impostor", ignoreCase = true))
                 {
