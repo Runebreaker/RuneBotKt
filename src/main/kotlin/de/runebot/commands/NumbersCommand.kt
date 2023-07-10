@@ -21,7 +21,9 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.message.create.UserMessageCreateBuilder
+import dev.kord.rest.builder.message.create.addFile
 import dev.kord.rest.builder.message.modify.UserMessageModifyBuilder
+import dev.kord.rest.builder.message.modify.addFile
 import dev.kord.x.emoji.Emojis
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.toJavaLocalDate

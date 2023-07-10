@@ -29,10 +29,10 @@ object UsersCommand : MessageCommandInterface
     {
         Config.getValue(event.guildId?.value ?: return, "adminChannel")?.let { channelID ->
             val users = StringBuilder()
-            event.getGuild()?.let { guild ->
+            event.getGuildOrNull()?.let { guild ->
                 users.append("Users on ${guild.name}")
                 guild.members.collect { member ->
-                    users.append("\n - ${member.displayName} (${member.username})")
+                    users.append("\n- ${member.effectiveName} (${member.username})")
                 }
             }
             Util.sendMessage(MessageChannelBehavior(Snowflake(channelID), kord), users.toString())

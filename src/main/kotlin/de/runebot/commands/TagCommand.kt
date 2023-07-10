@@ -69,7 +69,7 @@ object TagCommand : MessageCommandInterface
         { event, args, _ ->
             event.message.author?.let {
                 DB.getTagOwnerId(args[0])?.let { userId ->
-                    event.getGuild()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
+                    event.getGuildOrNull()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
                         event.message.channel.createMessage {
                             this.apply {
                                 embeds.add(createOwnerPage(ownerMember).embedBuilder)
@@ -99,7 +99,7 @@ object TagCommand : MessageCommandInterface
             val authors = mentions.ifEmpty { listOf(event.message.author) }.filterNotNull()
 
             authors.forEach { user ->
-                event.getGuild()?.getMemberOrNull(Snowflake(user.id.value.toLong()))?.let { ownerMember ->
+                event.getGuildOrNull()?.getMemberOrNull(Snowflake(user.id.value.toLong()))?.let { ownerMember ->
                     event.message.channel.createMessage {
                         this.apply {
                             embeds.add(createOwnerPage(ownerMember).embedBuilder)
@@ -159,11 +159,11 @@ object TagCommand : MessageCommandInterface
     {
         val ownerTags = DB.getTagsOfOwner(ownerMember.id.value.toLong())?.joinToString(", ") ?: "There was a problem receiving the owners other tags."
         val ownerPage = CataloguePage()
-        ownerPage.setTitle(ownerMember.displayName)
-        ownerPage.setDescription(ownerMember.tag)
+        ownerPage.setTitle(ownerMember.effectiveName)
+        ownerPage.setDescription(ownerMember.username)
         ownerMember.avatar?.let { icon ->
-            ownerPage.setThumbnailAsURL(icon.url)
-        } ?: ownerPage.setThumbnailAsURL(ownerMember.defaultAvatar.url)
+            ownerPage.setThumbnailAsURL(icon.cdnUrl.toUrl())
+        } ?: ownerPage.setThumbnailAsURL(ownerMember.defaultAvatar.cdnUrl.toUrl())
         ownerPage.addFields(EmbedFieldData("Owned tags:", ownerTags, OptionalBoolean.Value(false)))
         ownerPage.apply()
         return ownerPage
