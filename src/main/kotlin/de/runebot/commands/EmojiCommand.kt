@@ -17,7 +17,7 @@ object EmojiCommand : MessageCommandInterface
         get() = "returns images for emojis"
     override val longHelpText: String
         get() = "`$commandExample emoji style`: returns emoji image for given input in given style (random if not provided)\n" +
-                "available styles are: `twitter`, `apple`, `google`, `samsung`, `whatsapp`, `microsoft`, `twitter_new`, `teams`, `openmoji`, `facebook`, `emojipedia`, `joypixels`, `toss_face` and `noto_font`"
+                "available styles are: `TWITTER`, `APPLE`, `GOOGLE`, `GOOGLE_ANIMATED`, `SAMSUNG`, `WHATSAPP`, `TELEGRAM`, `MICROSOFT`, `TWITTER_NEW`, `TEAMS`, `SKYPE`, `OPENMOJI`, `FACEBOOK`, `MESSENGER`, `EMOJIPEDIA`, `JOYPIXELS`, `JOYMIXELS_ANIMATED`, `TOSS_FACE`, `NOTO_FONT`, `LG`, `HTC`, `MOZILLA`, `SOFTBANK`, `DOCOMO`, `AU_BY_KDDI`, `EMOJIDEX`"
 
     override fun prepare(kord: Kord)
     {
