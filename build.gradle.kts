@@ -14,6 +14,9 @@ repositories {
 
     // Kord Snapshots Repository (Optional):
     maven("https://oss.sonatype.org/content/repositories/snapshots")
+
+    // Crunch eval lib
+    maven("https://redempt.dev")
 }
 
 dependencies {
@@ -36,6 +39,8 @@ dependencies {
     implementation("org.jclarion:image4j:0.7")
 
     implementation("org.jetbrains.exposed:exposed-java-time:0.38.2")
+
+    implementation("com.github.Redempt:Crunch:1.1.3")
 }
 
 tasks.test {
