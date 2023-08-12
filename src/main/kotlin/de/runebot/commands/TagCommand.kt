@@ -30,7 +30,7 @@ object TagCommand : MessageCommandInterface
                     DBResponse.SUCCESS -> Util.sendMessage(event, "Tag created successfully.")
                     else -> Util.sendMessage(event, "Tag couldn't be created.")
                 }
-            }
+            } ?: Util.sendMessage(event, "Only Discord Users can use this command.")
         },
         emptyList()
     )
@@ -45,7 +45,7 @@ object TagCommand : MessageCommandInterface
                     DBResponse.WRONG_USER -> Util.sendMessage(event, "You don't own this tag.")
                     DBResponse.MISSING_ENTRY -> Util.sendMessage(event, "Tag doesn't exist.")
                 }
-            }
+            } ?: Util.sendMessage(event, "Only Discord Users can use this command.")
         },
         emptyList()
     )
@@ -60,20 +60,18 @@ object TagCommand : MessageCommandInterface
                     DBResponse.WRONG_USER -> Util.sendMessage(event, "You don't own this tag.")
                     DBResponse.MISSING_ENTRY -> Util.sendMessage(event, "Tag doesn't exist.")
                 }
-            }
+            } ?: Util.sendMessage(event, "Only Discord Users can use this command.")
         },
         emptyList()
     )
     private val owner = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("owner", "o"), Pair("owner <tag name>", "Shows who owns the tag.")),
         { event, args, _ ->
-            event.message.author?.let {
-                DB.getTagOwnerId(args[0])?.let { userId ->
-                    event.getGuildOrNull()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
-                        event.message.channel.createMessage {
-                            this.apply {
-                                embeds.add(createOwnerPage(ownerMember).embedBuilder)
-                            }
+            DB.getTagOwnerId(args[0])?.let { userId ->
+                event.getGuildOrNull()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
+                    event.message.channel.createMessage {
+                        this.apply {
+                            embeds.add(createOwnerPage(ownerMember).embedBuilder)
                         }
                     }
                 }
@@ -84,11 +82,9 @@ object TagCommand : MessageCommandInterface
     private val ght = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("ght"), Pair("ght <tag name>", "Outputs the tag stored under the specified name from the GHT DB.")),
         { event, args, _ ->
-            event.message.author?.let {
-                DB.getTag(args[0], true)?.let {
-                    Util.sendMessage(event, it)
-                } ?: Util.sendMessage(event, "Tag not found.")
-            }
+            DB.getTag(args[0], true)?.let {
+                Util.sendMessage(event, it)
+            } ?: Util.sendMessage(event, "Tag not found.")
         },
         emptyList()
     )
@@ -113,11 +109,9 @@ object TagCommand : MessageCommandInterface
     private val tag = MessageCommandInterface.Subcommand(
         MessageCommandInterface.CommandDescription(listOf("tag", "t"), Pair("tag <tag name>", "Outputs the tag stored under the specified name.")),
         { event, args, _ ->
-            event.message.author?.let {
-                DB.getTag(args[0])?.let {
-                    Util.sendMessage(event, it)
-                } ?: Util.sendMessage(event, "Tag not found.")
-            }
+            DB.getTag(args[0])?.let {
+                Util.sendMessage(event, it)
+            } ?: Util.sendMessage(event, "Tag not found.")
         },
         listOf(
             create,
@@ -148,7 +142,7 @@ object TagCommand : MessageCommandInterface
     {
         if (args.size <= 1)
         {
-            Util.sendMessage(event, "Try >(`${names.joinToString("` | `")}`) `help`")
+            Util.sendMessage(event, "Try `>help ${names.firstOrNull()}`")
             return
         }
 
