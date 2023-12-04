@@ -8,12 +8,10 @@ import kotlin.text.RegexOption.IGNORE_CASE
 object SixtyNine : Behavior
 {
     val regexes = listOf(
-        Regex("(s|S).*(i|I).*(x|X).*(t|T).*(y|Y).*(n|N).*(i|I).*(n|N).*(e|E)", DOT_MATCHES_ALL) to "sixtynine",
-        // Regex("69") to "69",
-        // Regex("6️⃣9️⃣") to "6️⃣9️⃣",
-        Regex("LXIX") to "LXIX",
-        Regex("(n|N).*(e|E).*(u|U).*(n|N).*(u|U).*(n|N).*(d|D).*(s|S).*(e|E).*(c|C).*(h|H).*(z|Z).*(i|I).*(g|G)", DOT_MATCHES_ALL) to "neunundsechzig",
-        Regex("(s|S).*(e|E).*(c|C).*(h|H).*(s|S).*(n|N).*(e|E).*(u|U).*(n|N)", DOT_MATCHES_ALL) to "sechsneun",
+        Regex("([sS]).*([iI]).*([xX]).*([tT]).*([yY]).*([nN]).*([iI]).*([nN]).*([eE])", DOT_MATCHES_ALL),
+        Regex("(L).*(X).*(I).*(X)", DOT_MATCHES_ALL),
+        Regex("([nN]).*([eE]).*([uU]).*([nN]).*([uU]).*([nN]).*([dD]).*([sS]).*([eE]).*([cC]).*([hH]).*([zZ]).*([iI]).*([gG])", DOT_MATCHES_ALL),
+        Regex("([sS]).*([eE]).*([cC]).*([hH]).*([sS]).*([nN]).*([eE]).*([uU]).*([nN])", DOT_MATCHES_ALL)
     )
 
     fun replace69(str: String, matchResult: MatchResult): String
@@ -36,6 +34,12 @@ object SixtyNine : Behavior
 
     override suspend fun run(content: String, messageCreateEvent: MessageCreateEvent)
     {
+        regexes.forEach { regex ->
+            content.replace(regex) { matchResult ->
+                matchResult.groups.first().
+            }
+        }
+
         var sixtynine = false
         regexes.forEach { (regex, str) ->
             if (!regex.containsMatchIn(content)) return@forEach
@@ -50,7 +54,7 @@ object SixtyNine : Behavior
 
         if (!sixtynine)
         {
-            Regex("(s|S).*(i|I).*(x|X).*(n|N).*(i|I).*(n|N).*(e|E)", setOf(DOT_MATCHES_ALL, IGNORE_CASE)).let { regex ->
+            Regex("([sS]).*([iI]).*([xX]).*([nN]).*([iI]).*([nN]).*([eE])", setOf(DOT_MATCHES_ALL, IGNORE_CASE)).let { regex ->
                 if (!regex.containsMatchIn(content)) return@let
                 Util.sendMessage(messageCreateEvent, "Nice: \"${regex.replace(content) { matchResult -> replace69("sixnine", matchResult) }.replace("____", "")}\"")
             }
