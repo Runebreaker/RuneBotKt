@@ -34,6 +34,8 @@ object Util
 {
     //region Constants
 
+    val guildEmojiRegex = Regex("<a?:[a-zA-Z0-9_]+:[0-9]+>")
+
     private val connectors = mutableMapOf(
         "L" to '─',
         "R" to '─',

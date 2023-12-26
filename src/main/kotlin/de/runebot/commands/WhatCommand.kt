@@ -1,6 +1,7 @@
 package de.runebot.commands
 
 import de.runebot.Util
+import de.runebot.Util.guildEmojiRegex
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.cache.data.EmojiData
@@ -31,8 +32,6 @@ object WhatCommand : MessageCommandInterface
     private var emojis = mutableListOf<Emoji>()
     private var lastEmojiUpdate: Long = 0
     private lateinit var kord: Kord
-
-    private val guildEmojiRegex = Regex("<a?:[a-zA-Z0-9_]+:[0-9]+>")
 
     override fun prepare(kord: Kord)
     {

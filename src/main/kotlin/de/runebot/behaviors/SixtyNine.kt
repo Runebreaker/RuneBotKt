@@ -1,62 +1,69 @@
 package de.runebot.behaviors
 
 import de.runebot.Util
+import de.runebot.Util.guildEmojiRegex
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlin.text.RegexOption.DOT_MATCHES_ALL
-import kotlin.text.RegexOption.IGNORE_CASE
 
 object SixtyNine : Behavior
 {
+    val anythingOrGuildEmojiRegex = Regex("(.*$guildEmojiRegex.*|.*)")
+    val star
+        get() = anythingOrGuildEmojiRegex
+
     val regexes = listOf(
-        Regex("([sS]).*([iI]).*([xX]).*([tT]).*([yY]).*([nN]).*([iI]).*([nN]).*([eE])", DOT_MATCHES_ALL),
-        Regex("(L).*(X).*(I).*(X)", DOT_MATCHES_ALL),
-        Regex("([nN]).*([eE]).*([uU]).*([nN]).*([uU]).*([nN]).*([dD]).*([sS]).*([eE]).*([cC]).*([hH]).*([zZ]).*([iI]).*([gG])", DOT_MATCHES_ALL),
-        Regex("([sS]).*([eE]).*([cC]).*([hH]).*([sS]).*([nN]).*([eE]).*([uU]).*([nN])", DOT_MATCHES_ALL)
+        Regex(
+            "([sS])(.*)([iI])(.*)([xX])(.*)([tT])(.*)([yY])(.*)([nN])(.*)([iI])(.*)([nN])(.*)([eE])|()([sS])(.*)([iI])(.*)([xX])(.*)([nN])(.*)([iI])(.*)([nN])(.*)([eE])", // empty group is necessary for grouping indices
+            DOT_MATCHES_ALL
+        ),
+        Regex("(L)(.*)(X)(.*)(I)(.*)(X)", DOT_MATCHES_ALL),
+        Regex("([nN])(.*)([eE])(.*)([uU])(.*)([nN])(.*)([uU])(.*)([nN])(.*)([dD])(.*)([sS])(.*)([eE])(.*)([cC])(.*)([hH])(.*)([zZ])(.*)([iI])(.*)([gG])", DOT_MATCHES_ALL),
+        Regex("([sS])(.*)([eE])(.*)([cC])(.*)([hH])(.*)([sS])(.*)([nN])(.*)([eE])(.*)([uU])(.*)([nN])", DOT_MATCHES_ALL)
     )
 
-    fun replace69(str: String, matchResult: MatchResult): String
-    {
-        var replacement = ""
-        var left = 0
-        var right = 0
-
-        str.forEach { c ->
-            val indexOf = matchResult.value.substring(left).indexOf(c, ignoreCase = true)
-            if (indexOf == -1) return@forEach
-            right = indexOf + 1 + left
-            replacement += matchResult.value.substring(left, right - 1) + "__" + matchResult.value[right - 1] + "__"
-            left = right
-        }
-        replacement += matchResult.value.substring(left)
-
-        return replacement
-    }
+    val regexes2 = listOf(
+        Regex(
+            "$star([sS])$star([iI])$star([xX])$star([tT])$star([yY])$star([nN])$star([iI])$star([nN])$star([eE])$star|()$star([sS])$star([iI])$star([xX])$star([nN])$star([iI])$star([nN])$star([eE])$star", // empty group is necessary for grouping indices
+            DOT_MATCHES_ALL
+        ),
+        Regex("$star(L)$star(X)$star(I)$star(X)$star", DOT_MATCHES_ALL),
+        Regex(
+            "$star([nN])$star([eE])$star([uU])$star([nN])$star([uU])$star([nN])$star([dD])$star([sS])$star([eE])$star([cC])$star([hH])$star([zZ])$star([iI])$star([gG])$star",
+            DOT_MATCHES_ALL
+        ),
+        Regex("$star([sS])$star([eE])$star([cC])$star([hH])$star([sS])$star([nN])$star([eE])$star([uU])$star([nN])$star", DOT_MATCHES_ALL)
+    )
 
     override suspend fun run(content: String, messageCreateEvent: MessageCreateEvent)
     {
         regexes.forEach { regex ->
-            content.replace(regex) { matchResult ->
-                matchResult.groups.first().
-            }
-        }
 
-        var sixtynine = false
-        regexes.forEach { (regex, str) ->
-            if (!regex.containsMatchIn(content)) return@forEach
-            if (regex == regexes[0].first) sixtynine = true
+            var i = 0
+            val rangesToReplace = guildEmojiRegex.findAll(content).map {
+                val intRange = i..<it.range.first
+                i = it.range.last + 1
+                intRange
+            }.toMutableList()
+            rangesToReplace.add(i..<content.length)
 
-            val sendThis = regex.replace(content) { matchResult ->
-                replace69(str, matchResult)
+            rangesToReplace.forEach { range ->
             }
 
-            Util.sendMessage(messageCreateEvent, "Nice: \"${sendThis.replace("____", "")}\"")
-        }
+            val withHighlight = content
+                .replace(guildEmojiRegex) {
+                    it.value
+                }
+//                .replace(regex) { result ->
+////                result.groups.mapIndexed { index, group -> index to group }
+////                    .joinToString(separator = "") { (index, group) ->
+////                        if (group == null || index == 0) ""// index 0 is whole match, this is to be ignored
+////                        else if (index % 2 == 1 || group.value.isBlank()) group.value // groups are 1-indexed, so every odd group is to be highlighted
+////                        else "[${group.value}](http://./)"
+////                    }
 
-        if (!sixtynine)
-        {
-            Regex("([sS]).*([iI]).*([xX]).*([nN]).*([iI]).*([nN]).*([eE])", setOf(DOT_MATCHES_ALL, IGNORE_CASE)).let { regex ->
-                if (!regex.containsMatchIn(content)) return@let
-                Util.sendMessage(messageCreateEvent, "Nice: \"${regex.replace(content) { matchResult -> replace69("sixnine", matchResult) }.replace("____", "")}\"")
+            if (withHighlight != content)
+            {
+                Util.sendMessage(messageCreateEvent, "Nice: \"$withHighlight\"")
             }
         }
     }
