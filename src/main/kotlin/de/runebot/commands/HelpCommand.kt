@@ -15,7 +15,7 @@ object HelpCommand : MessageCommandInterface
         get() = "`$commandExample`: show help overview\n" +
                 "`$commandExample command`: show detailed help for given command"
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

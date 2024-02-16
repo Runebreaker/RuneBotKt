@@ -44,7 +44,7 @@ object ReminderCommand : MessageCommandInterface
         get() = reminder.toTree().toString()
     private val regex = Regex("\\d+[smhd]")
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

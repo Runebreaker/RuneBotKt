@@ -3,7 +3,6 @@ package de.runebot.commands
 import de.runebot.Util
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.URI
@@ -56,7 +55,7 @@ object AnilistCommand : MessageCommandInterface
     private const val anilistUrl = "https://graphql.anilist.co"
     private val serializer = Json
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
         println("Anilist integration ready.")
     }

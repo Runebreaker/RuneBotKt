@@ -12,7 +12,7 @@ object TestCommand : MessageCommandInterface
     override val longHelpText: String
         get() = "`$commandExample`: do stuffs"
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

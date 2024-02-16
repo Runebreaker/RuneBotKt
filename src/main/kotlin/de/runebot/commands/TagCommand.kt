@@ -72,7 +72,7 @@ object TagCommand : MessageCommandInterface
                     event.getGuildOrNull()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
                         event.message.channel.createMessage {
                             this.apply {
-                                embeds.add(createOwnerPage(ownerMember).embedBuilder)
+                                embeds = mutableListOf(createOwnerPage(ownerMember).embedBuilder)
                             }
                         }
                     }
@@ -102,7 +102,7 @@ object TagCommand : MessageCommandInterface
                 event.getGuildOrNull()?.getMemberOrNull(Snowflake(user.id.value.toLong()))?.let { ownerMember ->
                     event.message.channel.createMessage {
                         this.apply {
-                            embeds.add(createOwnerPage(ownerMember).embedBuilder)
+                            embeds = mutableListOf(createOwnerPage(ownerMember).embedBuilder)
                         }
                     }
                 }
@@ -139,7 +139,7 @@ object TagCommand : MessageCommandInterface
 
     private val allowedTagNamePattern = Regex("[\\w\\däüöß]+")
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
         this.kord = kord
     }

@@ -189,7 +189,7 @@ object CollectionCommand : MessageCommandInterface
         get() = collection.toTree().toString()
     private lateinit var kord: Kord
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
         this.kord = kord
     }

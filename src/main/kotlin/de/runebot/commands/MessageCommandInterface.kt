@@ -66,7 +66,7 @@ interface MessageCommandInterface
     /**
      * This method will be called after initializing Kord
      */
-    fun prepare(kord: Kord)
+    suspend fun prepare(kord: Kord)
 
     /**
      * This method will be run when message starts with cmd sequence + this.name

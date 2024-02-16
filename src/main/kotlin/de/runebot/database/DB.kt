@@ -1,13 +1,15 @@
 package de.runebot.database
 
+import de.runebot.Util
+import de.runebot.Util.Puzzle
 import de.runebot.commands.NumbersCommand.DoujinData
 import kotlinx.datetime.toJavaLocalDate
 import kotlinx.datetime.toKotlinLocalDate
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import kotlin.io.path.Path
@@ -19,16 +21,19 @@ object DB
     private var mainDB: Database
     private var doujinDB: Database
     private var ghtTagDB: Database
+    private var puzzleDB: Database
 
     init
     {
         val pathToMainDB = Path("dbs/db.sqlite")
         val pathToDoujinDB = Path("dbs/doujinInfos.sqlite")
         val pathToGhtTags = Path("dbs/ghtTagDB.sqlite")
+        val pathToPuzzleDB = Path("dbs/puzzleDB.sqlite")
 
         mainDB = Database.connect("jdbc:sqlite:$pathToMainDB")
         doujinDB = Database.connect("jdbc:sqlite:$pathToDoujinDB")
         ghtTagDB = Database.connect("jdbc:sqlite:$pathToGhtTags")
+        puzzleDB = Database.connect("jdbc:sqlite:$pathToPuzzleDB")
 
         transaction(mainDB) {
             SchemaUtils.create(UserCollections, Timers, Tags)
@@ -40,6 +45,10 @@ object DB
 
         transaction(ghtTagDB) {
             SchemaUtils.create(Tags)
+        }
+
+        transaction(puzzleDB) {
+            SchemaUtils.create(Puzzles, PuzzleStatsByUser, UserStatsOverall)
         }
     }
 
@@ -549,6 +558,363 @@ object DB
                     it[Doujins.upload_date].toKotlinLocalDate()
                 )
             }
+        }
+    }
+
+    //endregion
+
+    //region Puzzle API
+    fun storePuzzle(
+        userId: Long,
+        name: String,
+        description: String,
+        difficulty: Int,
+        maxAttempts: Int,
+        rewardType: Util.PuzzleRewardType,
+        rewardAmount: Int,
+        puzzleDetails: String,
+        puzzleType: Util.PuzzleType,
+        hints: List<String>
+    ): Int
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                Puzzles.insert {
+                    it[this.creatorId] = userId
+                    it[this.approved] = false
+                    it[this.name] = name
+                    it[this.description] = description
+                    it[this.difficulty] = difficulty
+                    it[this.maxAttempts] = maxAttempts
+                    it[this.rewardType] = rewardType.id
+                    it[this.rewardAmount] = rewardAmount
+                    it[this.puzzleDetails] = puzzleDetails
+                    it[this.puzzleType] = puzzleType.id
+                    it[this.puzzleTips] = hints.joinToString(",")
+                }.resultedValues?.firstOrNull()?.get(Puzzles.puzzleId) ?: -1
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return -1
+        }
+    }
+
+    fun storePuzzleStatsForUser(userId: Long, puzzleId: Int, attempts: Int, solved: Boolean, time: Int): DBResponse
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                PuzzleStatsByUser.insert {
+                    it[this.userId] = userId
+                    it[this.puzzleId] = puzzleId
+                    it[this.attempts] = attempts
+                    it[this.solved] = solved
+                    it[this.time] = time
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun updatePuzzle(
+        puzzleId: Int,
+        userId: Long,
+        name: String,
+        description: String,
+        difficulty: Int,
+        maxAttempts: Int,
+        rewardType: Util.PuzzleRewardType,
+        rewardAmount: Int,
+        puzzleDetails: String,
+        puzzleType: Util.PuzzleType,
+        hints: String
+    ): Int
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                Puzzles.update({ Puzzles.puzzleId eq puzzleId }) {
+                    it[this.creatorId] = userId
+                    it[this.approved] = false
+                    it[this.name] = name
+                    it[this.description] = description
+                    it[this.difficulty] = difficulty
+                    it[this.maxAttempts] = maxAttempts
+                    it[this.rewardType] = rewardType.id
+                    it[this.rewardAmount] = rewardAmount
+                    it[this.puzzleDetails] = puzzleDetails
+                    it[this.puzzleType] = puzzleType.id
+                    it[this.puzzleTips] = hints
+                }
+                return@transaction puzzleId
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return -1
+        }
+    }
+
+    fun markPuzzleAsSolvedForUser(userId: Long, puzzleId: Int): DBResponse
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                val attemptsTaken = getPuzzleStatsForUser(userId, puzzleId)?.first
+                val puzzle = getPuzzle(puzzleId)
+                PuzzleStatsByUser.update({ (PuzzleStatsByUser.userId eq userId) and (PuzzleStatsByUser.puzzleId eq puzzleId) }) {
+                    it[this.solved] = true
+                }
+                UserStatsOverall.update({ UserStatsOverall.userId eq userId }) {
+                    it[this.solvedAmount] = solvedAmount + 1
+                    it[this.rewardPoints] =
+                        if (puzzle?.rewardType == Util.PuzzleRewardType.PUZZLE_POINTS && attemptsTaken != null && attemptsTaken <= puzzle.maxAttempts) rewardPoints + puzzle.rewardAmount else rewardPoints
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getPuzzleSolvers(puzzleId: Int): List<Long>
+    {
+        return try
+        {
+            transaction(puzzleDB) {
+                PuzzleStatsByUser.select {
+                    PuzzleStatsByUser.puzzleId eq puzzleId and PuzzleStatsByUser.solved
+                }.map { it[PuzzleStatsByUser.userId] }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    fun approvePuzzle(puzzleId: Int): DBResponse
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                Puzzles.update({ Puzzles.puzzleId eq puzzleId }) {
+                    it[approved] = true
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getUnapprovedPuzzles(): List<Puzzle>
+    {
+        return try
+        {
+            transaction(puzzleDB) {
+                Puzzles.select {
+                    Puzzles.approved eq false
+                }.map {
+                    Puzzle.createPuzzle(
+                        Util.PuzzleType.fromId(it[Puzzles.puzzleType]),
+                        it[Puzzles.puzzleId],
+                        it[Puzzles.creatorId],
+                        it[Puzzles.puzzleDetails],
+                        it[Puzzles.name],
+                        it[Puzzles.description],
+                        it[Puzzles.difficulty],
+                        it[Puzzles.maxAttempts],
+                        Util.PuzzleRewardType.fromId(it[Puzzles.rewardType]),
+                        it[Puzzles.rewardAmount]
+                    )
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
+    fun addPuzzleAttemptForUser(userId: Long, puzzleId: Int): DBResponse
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                PuzzleStatsByUser.update({ (PuzzleStatsByUser.userId eq userId) and (PuzzleStatsByUser.puzzleId eq puzzleId) }) {
+                    with(SqlExpressionBuilder) {
+                        it.update(attempts, attempts + 1)
+                    }
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun setPuzzleTimeForUser(userId: Long, puzzleId: Int, time: Int): DBResponse
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                PuzzleStatsByUser.update({ (PuzzleStatsByUser.userId eq userId) and (PuzzleStatsByUser.puzzleId eq puzzleId) }) {
+                    it[this.time] = time
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            return DBResponse.FAILURE
+        }
+    }
+
+    /**
+     * @return (attempts, solved, time) or null if no entry exists
+     */
+    fun getPuzzleStatsForUser(userId: Long, puzzleId: Int): Triple<Int, Boolean, Int>?
+    {
+        return try
+        {
+            transaction(puzzleDB) {
+                PuzzleStatsByUser.select {
+                    (PuzzleStatsByUser.userId eq userId) and (PuzzleStatsByUser.puzzleId eq puzzleId)
+                }.firstOrNull()?.let {
+                    Triple(it[PuzzleStatsByUser.attempts], it[PuzzleStatsByUser.solved], it[PuzzleStatsByUser.time])
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun getPuzzle(puzzleId: Int): Puzzle?
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                Puzzles.select {
+                    Puzzles.puzzleId eq puzzleId
+                }.firstOrNull()?.let {
+                    Puzzle.createPuzzle(
+                        Util.PuzzleType.fromId(it[Puzzles.puzzleType]),
+                        it[Puzzles.puzzleId],
+                        it[Puzzles.creatorId],
+                        it[Puzzles.puzzleDetails],
+                        it[Puzzles.name],
+                        it[Puzzles.description],
+                        it[Puzzles.difficulty],
+                        it[Puzzles.maxAttempts],
+                        Util.PuzzleRewardType.fromId(it[Puzzles.rewardType]),
+                        it[Puzzles.rewardAmount],
+                        it[Puzzles.puzzleTips]?.split(",")?.map { hint -> hint.trim() } ?: emptyList()
+                    )
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    /**
+     * Gets a random puzzle that is not created by the specified user.
+     * @param userId the id of the user that should not be the creator of the puzzle
+     * @return a random puzzle that is not created by the specified user
+     */
+    fun getRandomPuzzle(userId: Long): Puzzle?
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                Puzzles.leftJoin(PuzzleStatsByUser, { puzzleId }, { puzzleId }).select {
+                    (Puzzles.approved eq true) and (Puzzles.creatorId neq userId) and (PuzzleStatsByUser.solved eq false or PuzzleStatsByUser.solved.isNull())
+                }.orderBy(Random()).firstOrNull()?.let {
+                    Puzzle.createPuzzle(
+                        Util.PuzzleType.fromId(it[Puzzles.puzzleType]),
+                        it[Puzzles.puzzleId],
+                        it[Puzzles.creatorId],
+                        it[Puzzles.puzzleDetails],
+                        it[Puzzles.name],
+                        it[Puzzles.description],
+                        it[Puzzles.difficulty],
+                        it[Puzzles.maxAttempts],
+                        Util.PuzzleRewardType.fromId(it[Puzzles.rewardType]),
+                        it[Puzzles.rewardAmount],
+                        it[Puzzles.puzzleTips]?.split(",")?.map { hint -> hint.trim() } ?: emptyList()
+                    )
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    fun setActivePuzzleIdForUser(userId: Long, puzzleId: Int?): DBResponse
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                UserStatsOverall.update({ UserStatsOverall.userId eq userId }) {
+                    it[activePuzzle] = puzzleId
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun getActivePuzzleIdForUser(userId: Long): Int?
+    {
+        return try
+        {
+            transaction(puzzleDB) {
+                UserStatsOverall.select {
+                    UserStatsOverall.userId eq userId
+                }.firstOrNull()?.let {
+                    it[UserStatsOverall.activePuzzle]
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun initializeUserStatsIfNotExists(userId: Long): DBResponse
+    {
+        try
+        {
+            return transaction(puzzleDB) {
+                UserStatsOverall.insertIgnore {
+                    it[this.userId] = userId
+                    it[this.activePuzzle] = null
+                    it[this.solvedAmount] = 0
+                    it[this.rewardPoints] = 0
+                }
+                return@transaction DBResponse.SUCCESS
+            }
+        } catch (e: ExposedSQLException)
+        {
+            return DBResponse.FAILURE
         }
     }
 

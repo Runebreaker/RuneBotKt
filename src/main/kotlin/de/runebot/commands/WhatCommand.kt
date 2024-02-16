@@ -5,7 +5,10 @@ import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.cache.data.EmojiData
 import dev.kord.core.entity.GuildEmoji
+import dev.kord.core.entity.Message
+import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.core.on
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.geom.Ellipse2D
@@ -34,57 +37,64 @@ object WhatCommand : MessageCommandInterface
 
     private val guildEmojiRegex = Regex("<a?:[a-zA-Z0-9_]+:[0-9]+>")
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
         this.kord = kord
         loadCurrentEmojiList()
         println("Emojis loaded from https://www.unicode.org/Public/emoji/latest/emoji-test.txt")
+        kord.createGlobalMessageCommand("No bottom.")
+        kord.on<MessageCommandInteractionCreateEvent> { generateMeme(interaction.target.asMessage()) }
     }
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
         event.message.referencedMessage?.let { referencedMessage ->
-            if (System.currentTimeMillis() > lastEmojiUpdate + 1.days.inWholeMilliseconds) loadCurrentEmojiList()
-
-            val content = referencedMessage.content
-            val index = args.getOrNull(1)?.toIntOrNull() ?: 0
-
-            // searches the message for emojis
-            val foundEmojis = findEmojis(content, event.guildId ?: Snowflake(0))
-            if (foundEmojis.isEmpty())
-            {
-                Util.sendMessage(event, "No Emoji found!")
-                return
-            }
-
-            // creates background, should never fail
-            val background = withContext(Dispatchers.IO) {
-                ImageIO.read(WhatCommand::class.java.getResourceAsStream("/IDSB.jpg"))
-            }
-            val graphics = background.createGraphics()
-
-            // loads image of emoji
-            val emoji = loadEmoji(foundEmojis[index] ?: emptyList())
-                ?: Util.sendMessage(event, "No image found for this emoji!").run { return }
-
-            // author avatar is skipped if no image is found
-            referencedMessage.getAuthorAsMemberOrNull()?.avatar?.cdnUrl?.let { cdnUrl ->
-                ImageIO.read(URL(cdnUrl.toUrl()))
-            }?.let {
-                val circleBuffer = BufferedImage(250, 250, BufferedImage.TYPE_INT_ARGB)
-                val cropG = circleBuffer.createGraphics()
-                cropG.clip(Ellipse2D.Double(0.0, 0.0, 250.0, 250.0))
-                cropG.drawImage(it, 0, 0, 250, 250, null)
-                graphics.drawImage(circleBuffer, 257 - 125, 289 - 125, 250, 250, null) // face
-            }
-
-            graphics.drawImage(emoji, 512 - 60, 275 - 60, 120, 120, null) // emoji in speech bubble
-            graphics.drawImage(emoji, 243 - 17, 919 - 17, 33, 33, null) // emoji in response text
-            Util.sendImage(event.message.channel, "what.jpg", background)
-            return
+            generateMeme(referencedMessage, args)
         }
         // if anything else fails, it must be user-error
         Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`")
+    }
+
+    private suspend fun generateMeme(referencedMessage: Message, args: List<String> = emptyList())
+    {
+        if (System.currentTimeMillis() > lastEmojiUpdate + 1.days.inWholeMilliseconds) loadCurrentEmojiList()
+
+        val content = referencedMessage.content
+        val index = args.getOrNull(1)?.toIntOrNull() ?: 0
+
+        // searches the message for emojis
+        val foundEmojis = findEmojis(content, referencedMessage.getGuild().id)
+        if (foundEmojis.isEmpty())
+        {
+            Util.sendMessage(referencedMessage.channel, "No Emoji found!")
+            return
+        }
+
+        // creates background, should never fail
+        val background = withContext(Dispatchers.IO) {
+            ImageIO.read(WhatCommand::class.java.getResourceAsStream("/IDSB.jpg"))
+        }
+        val graphics = background.createGraphics()
+
+        // loads image of emoji
+        val emoji = loadEmoji(foundEmojis[index] ?: emptyList())
+            ?: Util.sendMessage(referencedMessage.channel, "No image found for this emoji!").run { return }
+
+        // author avatar is skipped if no image is found
+        referencedMessage.getAuthorAsMemberOrNull()?.avatar?.cdnUrl?.let { cdnUrl ->
+            ImageIO.read(URL(cdnUrl.toUrl()))
+        }?.let {
+            val circleBuffer = BufferedImage(250, 250, BufferedImage.TYPE_INT_ARGB)
+            val cropG = circleBuffer.createGraphics()
+            cropG.clip(Ellipse2D.Double(0.0, 0.0, 250.0, 250.0))
+            cropG.drawImage(it, 0, 0, 250, 250, null)
+            graphics.drawImage(circleBuffer, 257 - 125, 289 - 125, 250, 250, null) // face
+        }
+
+        graphics.drawImage(emoji, 512 - 60, 275 - 60, 120, 120, null) // emoji in speech bubble
+        graphics.drawImage(emoji, 243 - 17, 919 - 17, 33, 33, null) // emoji in response text
+        Util.sendImage(referencedMessage.channel, "what.jpg", background)
+        return
     }
 
     private fun loadEmoji(possibleURLs: List<String>): BufferedImage?

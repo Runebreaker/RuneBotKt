@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.10"
-    kotlin("plugin.serialization") version "1.7.10"
+    kotlin("jvm") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.0"
     application
 }
 
@@ -20,7 +20,7 @@ dependencies {
     testImplementation(kotlin("test"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("dev.kord:kord-core:0.10.0")
+    implementation("dev.kord:kord-core:0.13.1")
     implementation("dev.kord.x:emoji:0.5.0")
 
     implementation("org.jetbrains.exposed:exposed-core:0.38.2")

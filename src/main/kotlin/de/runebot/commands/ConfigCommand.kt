@@ -19,7 +19,7 @@ object ConfigCommand : MessageCommandInterface
     override val needsAdmin: Boolean
         get() = true
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

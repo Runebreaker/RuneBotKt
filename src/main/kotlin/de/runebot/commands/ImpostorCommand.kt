@@ -13,7 +13,7 @@ object ImpostorCommand : MessageCommandInterface
     override val longHelpText: String
         get() = "`$commandExample`: lists impostors on this server"
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

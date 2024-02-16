@@ -27,7 +27,7 @@ object BehaviorCommand : MessageCommandInterface
         get() = Registry.behaviors.map { behavior -> behavior::class.simpleName.toString() }.toSet()
 
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

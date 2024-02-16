@@ -39,7 +39,7 @@ object UwuifyCommand : MessageCommandInterface
     private val ruleset = mutableSetOf<Rule>()
     private const val UWU_PERCENT_BARRIER_MAX = 0.3
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

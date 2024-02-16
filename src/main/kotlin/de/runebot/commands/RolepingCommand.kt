@@ -67,7 +67,7 @@ object RolepingCommand : MessageCommandInterface
         Util.sendMessage(event, finalMessage.toString())
     }
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
         this.kord = kord
     }

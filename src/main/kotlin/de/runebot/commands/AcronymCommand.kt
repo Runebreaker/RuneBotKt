@@ -32,7 +32,7 @@ object AcronymCommand : MessageCommandInterface
         dictionary = buffer
     }
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
         this.kord = kord
     }

@@ -20,10 +20,9 @@ import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
+import dev.kord.rest.builder.message.addFile
 import dev.kord.rest.builder.message.create.UserMessageCreateBuilder
-import dev.kord.rest.builder.message.create.addFile
 import dev.kord.rest.builder.message.modify.UserMessageModifyBuilder
-import dev.kord.rest.builder.message.modify.addFile
 import dev.kord.x.emoji.Emojis
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.toJavaLocalDate
@@ -106,7 +105,7 @@ object NumbersCommand : MessageCommandInterface
 
     //region Inherited
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
         // Prep kord behaviour for events
         this.kord = kord
@@ -116,9 +115,9 @@ object NumbersCommand : MessageCommandInterface
         })
 
         // Load saved doujins from DB
-        DB.getAllDoujins().forEach {
-            doujins[it.key] = loadNumberInfo(it.key, it.value).second
-        }
+//        DB.getAllDoujins().forEach {
+//            doujins[it.key] = loadNumberInfo(it.key, it.value).second
+//        }
 
         println("Numbers command ready.")
     }
@@ -139,7 +138,7 @@ object NumbersCommand : MessageCommandInterface
     {
         interaction.message.edit {
             attachments = mutableListOf()
-            files = mutableListOf()
+            files.clear()
             interaction.message.embeds[0].title?.toInt().let { number ->
                 doujins[number]?.let { doujin ->
                     if (interaction.componentId == "left")
@@ -194,11 +193,11 @@ object NumbersCommand : MessageCommandInterface
     {
         builder.apply {
             val currentPage = doujin.currentPage()
-            embeds.add(currentPage.embedBuilder)
+            embeds = mutableListOf(currentPage.embedBuilder)
             currentPage.files.forEach {
                 addFile(it.value)
             }
-            components.add(createActionRow(doujin.index, doujin.pages.lastIndex))
+            components = mutableListOf(createActionRow(doujin.index, doujin.pages.lastIndex))
         }
     }
 

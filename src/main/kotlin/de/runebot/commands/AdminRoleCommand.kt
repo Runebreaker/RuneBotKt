@@ -14,7 +14,7 @@ object AdminRoleCommand : MessageCommandInterface
     override val longHelpText: String
         get() = "`${commandExample} id`:set admin role id to `id`"
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

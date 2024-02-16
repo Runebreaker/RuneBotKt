@@ -61,7 +61,7 @@ object FrenchifyCommand : MessageCommandInterface
         "z" to "pédale"
     )
 
-    override fun prepare(kord: Kord)
+    override suspend fun prepare(kord: Kord)
     {
 
     }

@@ -8,7 +8,7 @@ interface StringResponseCommand : MessageCommandInterface
 {
     val response: String
 
-    override fun prepare(kord: Kord) = Unit
+    override suspend fun prepare(kord: Kord) = Unit
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
