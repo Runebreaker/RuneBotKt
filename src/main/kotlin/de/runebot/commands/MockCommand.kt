@@ -5,7 +5,7 @@ import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlin.random.Random
 
-object MockCommand : RuneMessageCommand
+object MockCommand : RuneTextCommand
 {
     override val names: List<String>
         get() = listOf("mock")

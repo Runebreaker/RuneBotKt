@@ -9,10 +9,10 @@ import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlin.math.tanh
 
-object UwuifyCommand : RuneMessageCommand
+object UwuifyCommand : RuneTextCommand
 {
-    private val uwuify = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(names, Pair("uwu ( <input> | reply )", shortHelpText)),
+    private val uwuify = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(names, Pair("uwu ( <input> | reply )", shortHelpText)),
         { event, args, _ ->
             if (event.message.type == MessageType.Reply)
             {

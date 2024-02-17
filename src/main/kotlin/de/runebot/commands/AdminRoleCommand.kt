@@ -5,7 +5,7 @@ import de.runebot.config.Config
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object AdminRoleCommand : RuneMessageCommand
+object AdminRoleCommand : RuneTextCommand
 {
     override val names: List<String>
         get() = listOf("setadmin", "setadmon", "setgommemode")

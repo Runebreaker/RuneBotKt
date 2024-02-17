@@ -39,10 +39,10 @@ import javax.imageio.ImageIO
 import kotlin.io.path.Path
 
 
-object NumbersCommand : RuneMessageCommand
+object NumbersCommand : RuneTextCommand
 {
-    private val clear = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("clear", "clr"), Pair("clear", "Deletes all stored doujins.")),
+    private val clear = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("clear", "clr"), Pair("clear", "Deletes all stored doujins.")),
         { event, args, _ ->
             when (DB.deleteAllDoujins())
             {
@@ -54,8 +54,8 @@ object NumbersCommand : RuneMessageCommand
         emptyList()
     )
 
-    private val numbers = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(names, Pair("numbers <the sauce>", "Retrieves info about the specified artwork.")),
+    private val numbers = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(names, Pair("numbers <the sauce>", "Retrieves info about the specified artwork.")),
         { event, args, _ ->
             // sample format: https://nhentai.net/g/<insert number>/
             if (args.isEmpty()) return@Subcommand

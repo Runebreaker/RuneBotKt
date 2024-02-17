@@ -4,7 +4,7 @@ import de.runebot.Util
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object ImpostorCommand : RuneMessageCommand
+object ImpostorCommand : RuneTextCommand
 {
     override val names: List<String>
         get() = listOf("impostor", "sussybaka")

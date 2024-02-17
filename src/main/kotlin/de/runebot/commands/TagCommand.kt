@@ -13,10 +13,10 @@ import dev.kord.core.entity.Member
 import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.coroutines.flow.toList
 
-object TagCommand : RuneMessageCommand
+object TagCommand : RuneTextCommand
 {
-    private val create = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("create", "cr", "c"), Pair("create <tag name> <message>", "Creates a new tag.")),
+    private val create = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("create", "cr", "c"), Pair("create <tag name> <message>", "Creates a new tag.")),
         { event, args, _ ->
             event.message.author?.let {
                 val tagName = args[0]
@@ -34,8 +34,8 @@ object TagCommand : RuneMessageCommand
         },
         emptyList()
     )
-    private val update = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("update", "up", "u"), Pair("update <tag name> <new message>", "Updates a tag, if you own it.")),
+    private val update = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("update", "up", "u"), Pair("update <tag name> <new message>", "Updates a tag, if you own it.")),
         { event, args, _ ->
             event.message.author?.let {
                 when (DB.updateTagIfOwner(args[0], args.subList(1, args.size).joinToString(" "), it.id.value.toLong()))
@@ -49,8 +49,8 @@ object TagCommand : RuneMessageCommand
         },
         emptyList()
     )
-    private val delete = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("delete", "del", "d"), Pair("delete <tag name>", "Deletes the tag, if you own it.")),
+    private val delete = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("delete", "del", "d"), Pair("delete <tag name>", "Deletes the tag, if you own it.")),
         { event, args, _ ->
             event.message.author?.let {
                 when (DB.deleteTagIfOwner(args.subList(0, args.size).joinToString(" "), it.id.value.toLong()))
@@ -64,8 +64,8 @@ object TagCommand : RuneMessageCommand
         },
         emptyList()
     )
-    private val owner = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("owner", "o"), Pair("owner <tag name>", "Shows who owns the tag.")),
+    private val owner = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("owner", "o"), Pair("owner <tag name>", "Shows who owns the tag.")),
         { event, args, _ ->
             DB.getTagOwnerId(args[0])?.let { userId ->
                 event.getGuildOrNull()?.getMemberOrNull(Snowflake(userId))?.let { ownerMember ->
@@ -79,8 +79,8 @@ object TagCommand : RuneMessageCommand
         },
         emptyList()
     )
-    private val ght = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("ght"), Pair("ght <tag name>", "Outputs the tag stored under the specified name from the GHT DB.")),
+    private val ght = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("ght"), Pair("ght <tag name>", "Outputs the tag stored under the specified name from the GHT DB.")),
         { event, args, _ ->
             DB.getTag(args[0], true)?.let {
                 Util.sendMessage(event, it)
@@ -88,8 +88,8 @@ object TagCommand : RuneMessageCommand
         },
         emptyList()
     )
-    private val list = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("list", "l"), Pair("list", "Lists all of your tags.")),
+    private val list = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("list", "l"), Pair("list", "Lists all of your tags.")),
         { event, args, _ ->
             val mentions = event.message.mentionedUsers.toList()
             val authors = mentions.ifEmpty { listOf(event.message.author) }.filterNotNull()
@@ -106,8 +106,8 @@ object TagCommand : RuneMessageCommand
         },
         emptyList()
     )
-    private val tag = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("tag", "t"), Pair("tag <tag name>", "Outputs the tag stored under the specified name.")),
+    private val tag = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("tag", "t"), Pair("tag <tag name>", "Outputs the tag stored under the specified name.")),
         { event, args, _ ->
             DB.getTag(args[0])?.let {
                 Util.sendMessage(event, it)

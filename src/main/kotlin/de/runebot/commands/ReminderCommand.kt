@@ -13,10 +13,10 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-object ReminderCommand : RuneMessageCommand
+object ReminderCommand : RuneTextCommand
 {
-    private val reminder = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(names, Pair("reminder <time> <message>", "After specified time, posts the given message and mentions the author and reactors.")),
+    private val reminder = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(names, Pair("reminder <time> <message>", "After specified time, posts the given message and mentions the author and reactors.")),
         { event, args, _ ->
             // Extract time
             val rawTime = regex.findAll(args[0], 0).map { result -> result.value }.toList()

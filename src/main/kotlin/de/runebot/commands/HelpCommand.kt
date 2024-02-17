@@ -5,7 +5,7 @@ import de.runebot.Util
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object HelpCommand : RuneMessageCommand
+object HelpCommand : RuneTextCommand
 {
     override val names: List<String>
         get() = listOf("help", "?")
@@ -27,17 +27,17 @@ object HelpCommand : RuneMessageCommand
         {
             Util.sendMessage(
                 event, Registry.commands
-                    .filterIsInstance<RuneMessageCommand>()
-                    .filter { !it.needsAdmin || RuneMessageCommand.isAdmin(event) }
+                    .filterIsInstance<RuneTextCommand>()
+                    .filter { !it.needsAdmin || RuneTextCommand.isAdmin(event) }
                 .sortedBy { it.names.first() }
                 .joinToString(prefix = "Available commands:${System.lineSeparator()}", separator = System.lineSeparator()) { cmd ->
-                    cmd.names.joinToString(prefix = "`", separator = "`|`", postfix = "`: ") { RuneMessageCommand.prefix + it } + cmd.shortHelpText
+                    cmd.names.joinToString(prefix = "`", separator = "`|`", postfix = "`: ") { RuneTextCommand.prefix + it } + cmd.shortHelpText
                 })
         }
         // show specific help text
         else
         {
-            Util.sendMessage(event, Registry.commands.filterIsInstance<RuneMessageCommand>().find { args.getOrNull(1) in it.names }?.longHelpText ?: "command not found!")
+            Util.sendMessage(event, Registry.commands.filterIsInstance<RuneTextCommand>().find { args.getOrNull(1) in it.names }?.longHelpText ?: "command not found!")
         }
     }
 }

@@ -3,7 +3,7 @@ package de.runebot.commands
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object TestCommand : RuneMessageCommand
+object TestCommand : RuneTextCommand
 {
     override val names: List<String>
         get() = listOf("test")

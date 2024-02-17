@@ -9,13 +9,13 @@ import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 
-object CollectionCommand : RuneMessageCommand
+object CollectionCommand : RuneTextCommand
 {
-    private val add: RuneMessageCommand.Subcommand = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("add", "a"), Pair("add", "")),
+    private val add: RuneTextCommand.Subcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("add", "a"), Pair("add", "")),
         subcommands = listOf(
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Adds series to collection.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Adds series to collection.")),
                 { event, args, _ ->
                     event.message.author?.id?.value?.toLong()?.let {
                         if (DB.addToCollection(it, "All characters", args[0]) == DBResponse.SUCCESS)
@@ -26,8 +26,8 @@ object CollectionCommand : RuneMessageCommand
                 },
                 listOf()
             ),
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Adds character to collection.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Adds character to collection.")),
                 { event, args, _ ->
                     event.message.author?.id?.value?.toLong()?.let {
                         if (DB.addToCollection(it, args[0], "None") == DBResponse.SUCCESS)
@@ -38,8 +38,8 @@ object CollectionCommand : RuneMessageCommand
                 },
                 listOf()
             ),
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("combo", "co"), Pair("combo <character name> <series name>", "Adds combo to collection.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("combo", "co"), Pair("combo <character name> <series name>", "Adds combo to collection.")),
                 { event, args, _ ->
                     event.message.author?.id?.value?.toLong()?.let {
                         if (DB.addToCollection(it, args[0], args[1]) == DBResponse.SUCCESS)
@@ -53,11 +53,11 @@ object CollectionCommand : RuneMessageCommand
         )
     )
 
-    private val yeet: RuneMessageCommand.Subcommand = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("yeet", "y"), Pair("yeet", "")),
+    private val yeet: RuneTextCommand.Subcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("yeet", "y"), Pair("yeet", "")),
         subcommands = listOf(
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Removes series from collection.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Removes series from collection.")),
                 { event, args, _ ->
                     event.message.author?.id?.value?.toLong()?.let {
                         if (DB.removeFromCollection(it, "All characters", args[0]) == DBResponse.SUCCESS)
@@ -68,8 +68,8 @@ object CollectionCommand : RuneMessageCommand
                 },
                 listOf()
             ),
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Removes character from collection.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Removes character from collection.")),
                 { event, args, _ ->
                     event.message.author?.id?.value?.toLong()?.let {
                         if (DB.removeFromCollection(it, args[0], "None") == DBResponse.SUCCESS)
@@ -80,8 +80,8 @@ object CollectionCommand : RuneMessageCommand
                 },
                 listOf()
             ),
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("combo", "co"), Pair("combo <character name> <series name>", "Removes combo from collection.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("combo", "co"), Pair("combo <character name> <series name>", "Removes combo from collection.")),
                 { event, args, _ ->
                     event.message.author?.id?.value?.toLong()?.let {
                         if (DB.removeFromCollection(it, args[0], args[1]) == DBResponse.SUCCESS)
@@ -95,11 +95,11 @@ object CollectionCommand : RuneMessageCommand
         )
     )
 
-    private val find: RuneMessageCommand.Subcommand = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("find", "f"), Pair("find", "")),
+    private val find: RuneTextCommand.Subcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("find", "f"), Pair("find", "")),
         subcommands = listOf(
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Tells, which users collect the specified series.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("series", "se"), Pair("series <series name>", "Tells, which users collect the specified series.")),
                 { event, args, _ ->
                     val foundCollections: MutableMap<Long, MutableList<String>> = mutableMapOf()
                     DB.searchCollectionsBySeries(args[0]).forEach {
@@ -116,8 +116,8 @@ object CollectionCommand : RuneMessageCommand
                 },
                 listOf()
             ),
-            RuneMessageCommand.Subcommand(
-                RuneMessageCommand.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Tells, which users collect the specified character.")),
+            RuneTextCommand.Subcommand(
+                RuneTextCommand.CommandDescription(listOf("character", "ch"), Pair("character <character name>", "Tells, which users collect the specified character.")),
                 { event, args, _ ->
                     val foundCollections: MutableMap<Long, MutableList<String>> = mutableMapOf()
                     DB.searchCollectionsByCharacter(args[0]).forEach {
@@ -137,8 +137,8 @@ object CollectionCommand : RuneMessageCommand
         )
     )
 
-    private val show: RuneMessageCommand.Subcommand = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(listOf("show", "s"), Pair("show <mention>", "Shows the collection of specified user.")),
+    private val show: RuneTextCommand.Subcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("show", "s"), Pair("show <mention>", "Shows the collection of specified user.")),
         { event, args, _ ->
             if (event.message.mentionedUsers.toList().isEmpty())
             {
@@ -171,8 +171,8 @@ object CollectionCommand : RuneMessageCommand
         emptyList()
     )
 
-    private val collection: RuneMessageCommand.Subcommand = RuneMessageCommand.Subcommand(
-        RuneMessageCommand.CommandDescription(names, Pair(shortHelpText, "")),
+    private val collection: RuneTextCommand.Subcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(names, Pair(shortHelpText, "")),
         subcommands = listOf(
             add,
             yeet,

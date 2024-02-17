@@ -10,7 +10,7 @@ import dev.kord.rest.builder.interaction.string
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-object AcronymCommand : RuneMessageCommand, RuneSlashCommand
+object AcronymCommand : RuneTextCommand, RuneSlashCommand
 {
     override val names: List<String>
         get() = listOf("acronym", "acro")

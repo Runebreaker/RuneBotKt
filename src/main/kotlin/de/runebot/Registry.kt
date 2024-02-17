@@ -44,12 +44,12 @@ object Registry
         EvalCommand,
     )
 
-    val commandMap = mutableMapOf<String, RuneMessageCommand>()
+    val commandMap = mutableMapOf<String, RuneTextCommand>()
 
     suspend fun prepareCommands(kord: Kord)
     {
         commands.forEach { cmd ->
-            if (cmd is RuneMessageCommand)
+            if (cmd is RuneTextCommand)
             {
                 cmd.names.forEach { name ->
                     if (commandMap.containsKey(name)) error("$name is already registered for ${cmd.names}")
@@ -85,14 +85,14 @@ object Registry
     {
         val args = messageCreateEvent.message.content.split(" ")
         val commandMaybe = args.getOrNull(0) ?: return false
-        if (!commandMaybe.startsWith(RuneMessageCommand.prefix)) return false
-        val command = commandMap[commandMaybe.removePrefix(RuneMessageCommand.prefix)] ?: return false
-        if (command.needsAdmin && !RuneMessageCommand.isAdmin(messageCreateEvent))
+        if (!commandMaybe.startsWith(RuneTextCommand.prefix)) return false
+        val command = commandMap[commandMaybe.removePrefix(RuneTextCommand.prefix)] ?: return false
+        if (command.needsAdmin && !RuneTextCommand.isAdmin(messageCreateEvent))
         {
             Util.sendMessage(messageCreateEvent, "Only gods may possess such power. You are not worthy.")
             return false
         }
-        if (command.isNsfw && !RuneMessageCommand.isNsfw(messageCreateEvent))
+        if (command.isNsfw && !RuneTextCommand.isNsfw(messageCreateEvent))
         {
             Util.sendMessage(messageCreateEvent, "Gosh, do that somewhere else you pervert.")
             return false
