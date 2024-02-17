@@ -2,7 +2,10 @@ package de.runebot
 
 import de.runebot.behaviors.*
 import de.runebot.commands.*
+import dev.kord.core.Kord
+import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.core.on
 
 object Registry
 {
@@ -19,7 +22,7 @@ object Registry
         Rawr,
     )
 
-    val messageCommands = listOf<MessageCommandInterface>(
+    val commands = listOf<RuneCommand>(
         ConfigCommand,
         AdminChannelCommand,
         UsersCommand,
@@ -44,14 +47,29 @@ object Registry
         EvalCommand,
     )
 
-    val commandMap = mutableMapOf<String, MessageCommandInterface>()
+    val commandMap = mutableMapOf<String, RuneMessageCommand>()
 
-    init
+    suspend fun prepareCommands(kord: Kord)
     {
-        messageCommands.forEach { cmd ->
-            cmd.names.forEach { name ->
-                if (commandMap.containsKey(name)) error("$name is already registered for ${cmd.names}")
-                commandMap[name] = cmd
+        commands.forEach { cmd ->
+            if (cmd is RuneMessageCommand)
+            {
+                cmd.names.forEach { name ->
+                    if (commandMap.containsKey(name)) error("$name is already registered for ${cmd.names}")
+                    commandMap[name] = cmd
+                }
+
+                cmd.prepare(kord)
+            }
+            if (cmd is RuneSlashCommand)
+            {
+                kord.createGlobalChatInputCommand(cmd.name, cmd.helpText) {
+                    cmd.createCommand(this)
+                }
+
+                kord.on<GuildChatInputCommandInteractionCreateEvent> {
+                    cmd.execute(this)
+                }
             }
         }
     }
@@ -70,14 +88,14 @@ object Registry
     {
         val args = messageCreateEvent.message.content.split(" ")
         val commandMaybe = args.getOrNull(0) ?: return false
-        if (!commandMaybe.startsWith(MessageCommandInterface.prefix)) return false
-        val command = commandMap[commandMaybe.removePrefix(MessageCommandInterface.prefix)] ?: return false
-        if (command.needsAdmin && !MessageCommandInterface.isAdmin(messageCreateEvent))
+        if (!commandMaybe.startsWith(RuneMessageCommand.prefix)) return false
+        val command = commandMap[commandMaybe.removePrefix(RuneMessageCommand.prefix)] ?: return false
+        if (command.needsAdmin && !RuneMessageCommand.isAdmin(messageCreateEvent))
         {
             Util.sendMessage(messageCreateEvent, "Only gods may possess such power. You are not worthy.")
             return false
         }
-        if (command.isNsfw && !MessageCommandInterface.isNsfw(messageCreateEvent))
+        if (command.isNsfw && !RuneMessageCommand.isNsfw(messageCreateEvent))
         {
             Util.sendMessage(messageCreateEvent, "Gosh, do that somewhere else you pervert.")
             return false

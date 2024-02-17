@@ -4,7 +4,7 @@ import de.runebot.Util
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-interface StringResponseCommand : MessageCommandInterface
+interface StringResponseCommand : RuneMessageCommand
 {
     val response: String
 

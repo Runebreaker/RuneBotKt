@@ -7,7 +7,7 @@ import dev.kord.x.emoji.Emojis
 import dev.kord.x.emoji.toReaction
 import redempt.crunch.Crunch
 
-object EvalCommand : MessageCommandInterface
+object EvalCommand : RuneMessageCommand
 {
     override val names: List<String>
         get() = listOf("eval")

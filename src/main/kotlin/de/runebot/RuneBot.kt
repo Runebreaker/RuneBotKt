@@ -33,7 +33,9 @@ object RuneBot
         kord = Kord(token)
 
         kord?.let { kord ->
-            Registry.messageCommands.forEach { it.prepare(kord) }
+            // TODO: remove all unused commands somehow
+
+            Registry.prepareCommands(kord)
 
             kord.on<MessageCreateEvent> {
                 if (Config.getValue(this.guildId?.value ?: return@on, "interactsWithBots") == "true")

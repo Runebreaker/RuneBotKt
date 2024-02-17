@@ -19,7 +19,7 @@ import kotlin.streams.toList
 import kotlin.time.Duration.Companion.days
 
 
-object WhatCommand : MessageCommandInterface
+object WhatCommand : RuneMessageCommand
 {
     override val names: List<String>
         get() = listOf("what")

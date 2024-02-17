@@ -5,10 +5,10 @@ import dev.kord.common.entity.MessageType
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object FrenchifyCommand : MessageCommandInterface
+object FrenchifyCommand : RuneMessageCommand
 {
-    private val frenchify = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(names, Pair("frenchify ( <input> | reply )", shortHelpText)),
+    private val frenchify = RuneMessageCommand.Subcommand(
+        RuneMessageCommand.CommandDescription(names, Pair("frenchify ( <input> | reply )", shortHelpText)),
         { event, args, _ ->
             if (event.message.type == MessageType.Reply)
             {

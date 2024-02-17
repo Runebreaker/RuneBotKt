@@ -3,7 +3,6 @@ package de.runebot.commands
 import de.runebot.Util
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.net.URI
@@ -12,10 +11,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 
-object AnilistCommand : MessageCommandInterface
+object AnilistCommand : RuneMessageCommand
 {
-    private val search = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(listOf("search", "s"), Pair("search <name>", "Searches AniList for the provided name.")),
+    private val search = RuneMessageCommand.Subcommand(
+        RuneMessageCommand.CommandDescription(listOf("search", "s"), Pair("search <name>", "Searches AniList for the provided name.")),
         { event, args, _ ->
             val values = mapOf("query" to defaultQuery(), "variables" to defaultSearchVariables(args.joinToString(" ")))
             val requestBody: String = serializer.encodeToString(values)
@@ -41,8 +40,8 @@ object AnilistCommand : MessageCommandInterface
         },
         emptyList()
     )
-    private val anilist = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(names, Pair(shortHelpText, "")),
+    private val anilist = RuneMessageCommand.Subcommand(
+        RuneMessageCommand.CommandDescription(names, Pair(shortHelpText, "")),
         subcommands = listOf(search)
     )
 

@@ -7,18 +7,18 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.event.message.MessageCreateEvent
 
-object AdminChannelCommand : MessageCommandInterface
+object AdminChannelCommand : RuneMessageCommand
 {
-    private val set = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(listOf("set", "s"), Pair("set", "Sets the current channel as admin channel.")),
+    private val set = RuneMessageCommand.Subcommand(
+        RuneMessageCommand.CommandDescription(listOf("set", "s"), Pair("set", "Sets the current channel as admin channel.")),
         { event, args, _ ->
             Config.storeValue(event.guildId?.value ?: return@Subcommand, "adminChannel", event.message.channel.id.toString())
             Util.sendMessage(event, "Admin channel set!")
         },
         emptyList()
     )
-    private val adminchannel = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(names, Pair("adminchannel", "Sends a message in the currently set admin channel.")),
+    private val adminchannel = RuneMessageCommand.Subcommand(
+        RuneMessageCommand.CommandDescription(names, Pair("adminchannel", "Sends a message in the currently set admin channel.")),
         { event, args, _ ->
             Config.getValue(event.guildId?.value ?: return@Subcommand, "adminChannel")?.let { channelID ->
                 Util.sendMessage(MessageChannelBehavior(Snowflake(channelID), kord), "This is the admin channel.")
