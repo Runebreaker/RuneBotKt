@@ -14,6 +14,7 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.exception.EntityNotFoundException
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.addFile
+import dev.kord.rest.builder.message.modify.InteractionResponseModifyBuilder
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
@@ -116,6 +117,22 @@ object Util
         channel.createMessage {
             this.addFile(fileName, ChannelProvider { inputStream.toByteReadChannel() })
         }
+    }
+
+    suspend fun respondImage(builder: InteractionResponseModifyBuilder, fileName: String, bufferedImage: BufferedImage)
+    {
+        val outputStream = ByteArrayOutputStream()
+        withContext(Dispatchers.IO) {
+            ImageIO.write(bufferedImage, "png", outputStream)
+        }
+        val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+
+        respondImage(builder, fileName, inputStream)
+    }
+
+    suspend fun respondImage(builder: InteractionResponseModifyBuilder, fileName: String, inputStream: InputStream)
+    {
+        builder.addFile(fileName, ChannelProvider { inputStream.toByteReadChannel() })
     }
 
     suspend fun sendImage(channel: MessageChannelBehavior, fileName: String, bufferedImage: BufferedImage)
