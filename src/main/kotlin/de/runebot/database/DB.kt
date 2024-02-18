@@ -153,9 +153,7 @@ object DB
         try
         {
             return transaction(if (fromGhtTags) ghtTagDB else mainDB) {
-                return@transaction Tags.select {
-                    Tags.name eq name
-                }.map { it[Tags.message] }.firstOrNull()
+                return@transaction Tags.selectAll().where { Tags.name eq name }.map { it[Tags.message] }.firstOrNull()
             }
         } catch (e: ExposedSQLException)
         {
@@ -169,9 +167,7 @@ object DB
         try
         {
             return transaction(mainDB) {
-                return@transaction Tags.select {
-                    Tags.name eq name
-                }.map { it[Tags.creatorId] }.firstOrNull()
+                return@transaction Tags.selectAll().where { Tags.name eq name }.map { it[Tags.creatorId] }.firstOrNull()
             }
         } catch (e: ExposedSQLException)
         {
@@ -185,9 +181,7 @@ object DB
         try
         {
             return transaction(mainDB) {
-                return@transaction Tags.select {
-                    Tags.creatorId eq ownerID
-                }.map { it[Tags.name] }
+                return@transaction Tags.selectAll().where { Tags.creatorId eq ownerID }.map { it[Tags.name] }
             }
         } catch (e: ExposedSQLException)
         {
@@ -198,9 +192,7 @@ object DB
 
     private fun checkForTagCreatorAndEntry(name: String, creator: Long): DBResponse
     {
-        Tags.select {
-            Tags.name eq name
-        }.firstOrNull()?.let {
+        Tags.selectAll().where { Tags.name eq name }.firstOrNull()?.let {
             if (it[Tags.creatorId] != creator)
             {
                 // IDs do not match
@@ -346,9 +338,8 @@ object DB
         try
         {
             transaction(mainDB) {
-                UserCollections.select {
-                    UserCollections.userId eq userId
-                }.forEach { totalResults.add(Pair(it[UserCollections.characterName], it[UserCollections.seriesName])) }
+                UserCollections.selectAll().where { UserCollections.userId eq userId }
+                    .forEach { totalResults.add(Pair(it[UserCollections.characterName], it[UserCollections.seriesName])) }
             }
         } catch (e: ExposedSQLException)
         {
@@ -363,9 +354,8 @@ object DB
         try
         {
             transaction(mainDB) {
-                UserCollections.select {
-                    UserCollections.characterName eq characterName
-                }.forEach { totalResults.add(Pair(it[UserCollections.userId], it[UserCollections.seriesName])) }
+                UserCollections.selectAll().where { UserCollections.characterName eq characterName }
+                    .forEach { totalResults.add(Pair(it[UserCollections.userId], it[UserCollections.seriesName])) }
             }
         } catch (e: ExposedSQLException)
         {
@@ -380,9 +370,8 @@ object DB
         try
         {
             transaction(mainDB) {
-                UserCollections.select {
-                    UserCollections.seriesName eq seriesName
-                }.forEach { totalResults.add(Pair(it[UserCollections.userId], it[UserCollections.characterName])) }
+                UserCollections.selectAll().where { UserCollections.seriesName eq seriesName }
+                    .forEach { totalResults.add(Pair(it[UserCollections.userId], it[UserCollections.characterName])) }
             }
         } catch (e: ExposedSQLException)
         {
@@ -393,9 +382,7 @@ object DB
 
     private fun checkForCollectionCreatorAndEntry(userId: Long, characterName: String, seriesName: String): DBResponse
     {
-        UserCollections.select {
-            (UserCollections.characterName eq characterName) and (UserCollections.seriesName eq seriesName)
-        }.firstOrNull()?.let {
+        UserCollections.selectAll().where { (UserCollections.characterName eq characterName) and (UserCollections.seriesName eq seriesName) }.firstOrNull()?.let {
             if (it[UserCollections.userId] != userId)
             {
                 // IDs do not match
@@ -506,9 +493,7 @@ object DB
         try
         {
             return transaction(doujinDB) {
-                return@transaction Doujins.select {
-                    Doujins.number eq number
-                }.firstOrNull()?.let {
+                return@transaction Doujins.selectAll().where { Doujins.number eq number }.firstOrNull()?.let {
                     DoujinData(
                         it[Doujins.name],
                         it[Doujins.original_name],
