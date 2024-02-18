@@ -6,14 +6,17 @@ import de.runebot.Util.replaceUsingRuleset
 import de.runebot.config.Config
 import dev.kord.common.entity.MessageType
 import dev.kord.core.Kord
+import dev.kord.core.behavior.interaction.respondPublic
+import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
 import kotlin.math.tanh
 
-object UwuifyCommand : RuneTextCommand
+object UwuifyCommand : RuneTextCommand, RuneMessageCommand
 {
     private val uwuify = RuneTextCommand.Subcommand(
-        RuneTextCommand.CommandDescription(names, Pair("uwu ( <input> | reply )", shortHelpText)),
-        { event, args, _ ->
+        commandDescription = RuneTextCommand.CommandDescription(names, Pair("uwu ( <input> | reply )", shortHelpText)),
+        function = { event, args, _ ->
             if (event.message.type == MessageType.Reply)
             {
                 event.message.referencedMessage?.let {
@@ -26,7 +29,7 @@ object UwuifyCommand : RuneTextCommand
             }
             else Util.sendMessage(event, "Please reply to a message or give text as input.")
         },
-        emptyList()
+        subcommands = emptyList()
     )
 
     override val names: List<String>
@@ -64,5 +67,21 @@ object UwuifyCommand : RuneTextCommand
             result = "$result uwu"
 
         return result
+    }
+
+    override val name: String
+        get() = "uwuify"
+
+    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    {
+        // nothing to declare
+    }
+
+    override suspend fun execute(event: MessageCommandInteractionCreateEvent)
+    {
+        with(event)
+        {
+            interaction.respondPublic { content = interaction.target.asMessageOrNull()?.content?.let { translate(it) } }
+        }
     }
 }
