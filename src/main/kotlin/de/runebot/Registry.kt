@@ -3,9 +3,9 @@ package de.runebot
 import de.runebot.behaviors.*
 import de.runebot.commands.*
 import dev.kord.core.Kord
-import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
+import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
+import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
-import dev.kord.core.on
 
 object Registry
 {
@@ -44,7 +44,9 @@ object Registry
         EvalCommand,
     )
 
-    val commandMap = mutableMapOf<String, RuneTextCommand>()
+    val textCommandMap = mutableMapOf<String, RuneTextCommand>()
+    val slashCommandMap = mutableMapOf<String, RuneSlashCommand>()
+    val messageCommandMap = mutableMapOf<String, RuneMessageCommand>()
 
     suspend fun prepareCommands(kord: Kord)
     {
@@ -52,20 +54,30 @@ object Registry
             if (cmd is RuneTextCommand)
             {
                 cmd.names.forEach { name ->
-                    if (commandMap.containsKey(name)) error("$name is already registered for ${cmd.names}")
-                    commandMap[name] = cmd
+                    if (textCommandMap.containsKey(name)) error("$name is already a registered text command.")
+                    textCommandMap[name] = cmd
                 }
 
                 cmd.prepare(kord)
             }
+
             if (cmd is RuneSlashCommand)
             {
+                if (slashCommandMap.containsKey(cmd.name)) error("${cmd.name} is already a registered slash command.")
+                slashCommandMap[cmd.name] = cmd
+
                 kord.createGlobalChatInputCommand(cmd.name, cmd.helpText) {
                     cmd.createCommand(this)
                 }
+            }
 
-                kord.on<GuildChatInputCommandInteractionCreateEvent> {
-                    cmd.execute(this)
+            if (cmd is RuneMessageCommand)
+            {
+                if (messageCommandMap.containsKey(cmd.name)) error("${cmd.name} is already a registered message command.")
+                messageCommandMap[cmd.name] = cmd
+
+                kord.createGlobalMessageCommand(cmd.name) {
+                    cmd.createCommand(this)
                 }
             }
         }
@@ -81,12 +93,12 @@ object Registry
         }
     }
 
-    suspend fun handleMessageCommands(messageCreateEvent: MessageCreateEvent): Boolean
+    suspend fun handleTextCommands(messageCreateEvent: MessageCreateEvent): Boolean
     {
         val args = messageCreateEvent.message.content.split(" ")
         val commandMaybe = args.getOrNull(0) ?: return false
         if (!commandMaybe.startsWith(RuneTextCommand.prefix)) return false
-        val command = commandMap[commandMaybe.removePrefix(RuneTextCommand.prefix)] ?: return false
+        val command = textCommandMap[commandMaybe.removePrefix(RuneTextCommand.prefix)] ?: return false
         if (command.needsAdmin && !RuneTextCommand.isAdmin(messageCreateEvent))
         {
             Util.sendMessage(messageCreateEvent, "Only gods may possess such power. You are not worthy.")
@@ -99,5 +111,23 @@ object Registry
         }
         command.execute(messageCreateEvent, args)
         return true
+    }
+
+    suspend fun handleSlashCommands(event: ChatInputCommandInteractionCreateEvent)
+    {
+        with(event)
+        {
+            val cmd = slashCommandMap[interaction.invokedCommandName]
+            cmd?.execute(this)
+        }
+    }
+
+    suspend fun handleMessageCommands(event: MessageCommandInteractionCreateEvent)
+    {
+        with(event)
+        {
+            val cmd = messageCommandMap[interaction.invokedCommandName]
+            cmd?.execute(this)
+        }
     }
 }

@@ -19,7 +19,7 @@ interface RuneSlashCommand : RuneCommand
     val helpText: String
 
     /**
-     * this method should create the slash command
+     * this method should define parameters and settings of slash command
      */
     suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
 
