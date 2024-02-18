@@ -114,7 +114,7 @@ object WhatCommand : RuneTextCommand, RuneMessageCommand
         possibleURLs.forEach { url ->
             try
             {
-                return ImageIO.read(URL(url))
+                return ImageIO.read(URI(url).toURL())
             } catch (e: Exception)
             {
                 e.printStackTrace()
