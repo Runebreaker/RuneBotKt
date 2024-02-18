@@ -3,9 +3,12 @@ package de.runebot.commands
 import de.runebot.Util
 import dev.kord.common.entity.MessageType
 import dev.kord.core.Kord
+import dev.kord.core.behavior.interaction.respondPublic
+import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
 
-object FrenchifyCommand : RuneTextCommand
+object FrenchifyCommand : RuneTextCommand, RuneMessageCommand
 {
     private val frenchify = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(names, Pair("frenchify ( <input> | reply )", shortHelpText)),
@@ -85,5 +88,21 @@ object FrenchifyCommand : RuneTextCommand
 
         val returnString = bobTheBuilder.toString()
         return Regex("\\*\\*\\*\\*").replace(returnString, "")
+    }
+
+    override val name: String
+        get() = "frenchify"
+
+    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    {
+        // nothing to declare
+    }
+
+    override suspend fun execute(event: MessageCommandInteractionCreateEvent)
+    {
+        with(event)
+        {
+            interaction.respondPublic { content = interaction.target.asMessageOrNull()?.content?.let { translate(it) } }
+        }
     }
 }
