@@ -44,9 +44,9 @@ object Registry
         EvalCommand,
     )
 
-    val textCommandMap = mutableMapOf<String, RuneTextCommand>()
-    val slashCommandMap = mutableMapOf<String, RuneSlashCommand>()
-    val messageCommandMap = mutableMapOf<String, RuneMessageCommand>()
+    private val textCommandMap = mutableMapOf<String, RuneTextCommand>()
+    private val slashCommandMap = mutableMapOf<String, RuneSlashCommand>()
+    private val messageCommandMap = mutableMapOf<String, RuneMessageCommand>()
 
     suspend fun prepareCommands(kord: Kord)
     {
