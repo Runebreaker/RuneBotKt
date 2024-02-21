@@ -10,10 +10,10 @@ import dev.kord.core.event.message.MessageCreateEvent
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 
-object RolepingCommand : MessageCommandInterface
+object RolepingCommand : RuneTextCommand
 {
-    private val roleping = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(names, Pair("set", "Sets the current channel as admin channel.")),
+    private val roleping = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(names, Pair("set", "Sets the current channel as admin channel.")),
         { event, args, _ ->
             rolePing(event, args)
         },

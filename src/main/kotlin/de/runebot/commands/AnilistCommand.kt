@@ -11,10 +11,10 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 
-object AnilistCommand : MessageCommandInterface
+object AnilistCommand : RuneTextCommand
 {
-    private val search = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(listOf("search", "s"), Pair("search <name>", "Searches AniList for the provided name.")),
+    private val search = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("search", "s"), Pair("search <name>", "Searches AniList for the provided name.")),
         { event, args, _ ->
             val values = mapOf("query" to defaultQuery(), "variables" to defaultSearchVariables(args.joinToString(" ")))
             val requestBody: String = serializer.encodeToString(values)
@@ -40,8 +40,8 @@ object AnilistCommand : MessageCommandInterface
         },
         emptyList()
     )
-    private val anilist = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(names, Pair(shortHelpText, "")),
+    private val anilist = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(names, Pair(shortHelpText, "")),
         subcommands = listOf(search)
     )
 

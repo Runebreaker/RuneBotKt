@@ -2,10 +2,13 @@ package de.runebot.commands
 
 import de.runebot.Util
 import dev.kord.core.Kord
+import dev.kord.core.behavior.interaction.respondPublic
+import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
 import kotlin.random.Random
 
-object MockCommand : MessageCommandInterface
+object MockCommand : RuneTextCommand, RuneMessageCommand
 {
     override val names: List<String>
         get() = listOf("mock")
@@ -35,5 +38,21 @@ object MockCommand : MessageCommandInterface
             if (Random.nextDouble() < .8) toggle = !toggle
         }
         return sb.toString()
+    }
+
+    override val name: String
+        get() = "mock"
+
+    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    {
+        // nothing special to declare
+    }
+
+    override suspend fun execute(event: MessageCommandInteractionCreateEvent)
+    {
+        with(event)
+        {
+            interaction.respondPublic { content = interaction.target.asMessageOrNull()?.content?.mockify() }
+        }
     }
 }

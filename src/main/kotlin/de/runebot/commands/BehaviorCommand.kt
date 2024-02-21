@@ -6,7 +6,7 @@ import de.runebot.config.Config
 import dev.kord.core.Kord
 import dev.kord.core.event.message.MessageCreateEvent
 
-object BehaviorCommand : MessageCommandInterface
+object BehaviorCommand : RuneTextCommand
 {
     override val needsAdmin: Boolean
         get() = true
