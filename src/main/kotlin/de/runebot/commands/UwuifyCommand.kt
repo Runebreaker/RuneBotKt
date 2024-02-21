@@ -1,7 +1,6 @@
 package de.runebot.commands
 
 import de.runebot.Util
-import de.runebot.Util.Rule
 import de.runebot.Util.replaceUsingRuleset
 import de.runebot.config.Config
 import dev.kord.common.entity.MessageType
@@ -20,12 +19,12 @@ object UwuifyCommand : RuneTextCommand, RuneMessageCommand
             if (event.message.type == MessageType.Reply)
             {
                 event.message.referencedMessage?.let {
-                    Util.sendMessage(event, translate(it.content))
+                    Util.sendMessage(event, translate(it.content, event.guildId?.value))
                 } ?: Util.sendMessage(event, "Message is not available.")
             }
             else if (args.isNotEmpty())
             {
-                Util.sendMessage(event, translate(args.joinToString(" ")))
+                Util.sendMessage(event, translate(args.joinToString(" "), event.guildId?.value))
             }
             else Util.sendMessage(event, "Please reply to a message or give text as input.")
         },
@@ -39,7 +38,6 @@ object UwuifyCommand : RuneTextCommand, RuneMessageCommand
     override val longHelpText: String
         get() = uwuify.toTree().toString()
 
-    private val ruleset = mutableSetOf<Rule>()
     private const val UWU_PERCENT_BARRIER_MAX = 0.3
 
     override fun prepare(kord: Kord)
@@ -49,14 +47,13 @@ object UwuifyCommand : RuneTextCommand, RuneMessageCommand
 
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
-        ruleset.clear()
-        ruleset.addAll(Config.getRules(event.guildId?.value ?: return))
-
         uwuify.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
     }
 
-    private fun translate(input: String): String // Mainly for rules implementation
+    private fun translate(input: String, guildId: ULong?): String // Mainly for rules implementation
     {
+        val ruleset = if (guildId != null) Config.getRules(guildId).toSet() else emptySet()
+
         // result, replace count
         val resultPair: Pair<String, Int> = replaceUsingRuleset(input, ruleset)
         var result: String = resultPair.first
@@ -81,7 +78,9 @@ object UwuifyCommand : RuneTextCommand, RuneMessageCommand
     {
         with(event)
         {
-            interaction.respondPublic { content = interaction.target.asMessageOrNull()?.content?.let { translate(it) } }
+            interaction.respondPublic {
+                content = interaction.target.asMessageOrNull()?.content?.let { translate(it, interaction.target.asMessageOrNull()?.getGuildOrNull()?.id?.value) }
+            }
         }
     }
 }

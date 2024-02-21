@@ -156,7 +156,7 @@ object Util
         }
     }
 
-    fun replaceUsingRuleset(input: String, ruleset: MutableSet<Rule>): Pair<String, Int>
+    fun replaceUsingRuleset(input: String, ruleset: Set<Rule>): Pair<String, Int>
     {
         var result = input
         var replacementCount = 0
