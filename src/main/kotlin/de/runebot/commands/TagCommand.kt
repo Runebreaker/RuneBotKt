@@ -18,6 +18,7 @@ import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.interaction.subCommand
+import dev.kord.rest.builder.interaction.user
 import kotlinx.coroutines.flow.toList
 
 object TagCommand : RuneTextCommand, RuneSlashCommand
@@ -295,7 +296,10 @@ object TagCommand : RuneTextCommand, RuneSlashCommand
                     maxLength = 50
                 }
             }
-            subCommand("list", "list tags you created") {
+            subCommand("list", "list your or someone else's tags") {
+                user("user", "list tags of target user") {
+                    required = false
+                }
             }
         }
     }
@@ -463,7 +467,9 @@ object TagCommand : RuneTextCommand, RuneSlashCommand
 
                 "list" ->
                 {
-                    val cataloguePage = generateOwnerPage(interaction.user)
+                    val user = interaction.command.users["user"] ?: interaction.user
+
+                    val cataloguePage = generateOwnerPage(user)
                     interaction.respondEphemeral {
                         embeds = mutableListOf(cataloguePage.embedBuilder)
                     }
