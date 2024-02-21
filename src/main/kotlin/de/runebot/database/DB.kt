@@ -205,13 +205,13 @@ object DB
     //endregion
 
     //region Timer API
-    fun addTimer(duration: Duration, message: String, channelId: Long, messageId: Long): DBResponse
+    fun addTimer(targetTime: Long, message: String, channelId: Long, messageId: Long = -1): DBResponse
     {
         try
         {
             return transaction(mainDB) {
                 Timers.insert {
-                    it[this.targetTime] = System.currentTimeMillis() + duration.inWholeMilliseconds
+                    it[this.targetTime] = targetTime
                     it[this.message] = message
                     it[this.channelId] = channelId
                     it[this.messageId] = messageId
@@ -223,6 +223,11 @@ object DB
             e.printStackTrace()
             return DBResponse.FAILURE
         }
+    }
+
+    fun addTimer(duration: Duration, message: String, channelId: Long, messageId: Long): DBResponse
+    {
+        return addTimer(System.currentTimeMillis() + duration.inWholeMilliseconds, message, channelId, messageId)
     }
 
     fun removeTimer(channelId: Long, messageId: Long): DBResponse
@@ -249,7 +254,7 @@ object DB
             return transaction(mainDB) {
                 return@transaction Timers.selectAll().map {
                     TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
-                }
+                }.sortedBy { it.targetTime }
             }
         } catch (e: ExposedSQLException)
         {

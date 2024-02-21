@@ -3,35 +3,40 @@ package de.runebot.commands
 import de.runebot.Taskmaster
 import de.runebot.Util
 import de.runebot.database.DB
+import de.runebot.database.DBResponse.SUCCESS
 import dev.kord.core.Kord
+import dev.kord.core.behavior.interaction.respondEphemeral
+import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.entity.ReactionEmoji
+import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
+import dev.kord.rest.builder.interaction.string
+import dev.kord.rest.builder.interaction.subCommand
 import dev.kord.x.emoji.Emojis
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
-object ReminderCommand : RuneTextCommand
+object ReminderCommand : RuneTextCommand, RuneSlashCommand
 {
+    private const val NO_MESSAGE_SET = "You didn't set a message, but your timer expired!"
+
     private val reminder = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(names, Pair("reminder <time> <message>", "After specified time, posts the given message and mentions the author and reactors.")),
         { event, args, _ ->
             // Extract time
-            val rawTime = regex.findAll(args[0], 0).map { result -> result.value }.toList()
-            val time = convertTimeToMillis(rawTime)
+            val duration = convertInputStringToDuration(args[0])
 
             // DB Operation
-            val userMessage = if (args.size > 1) args.subList(1, args.size).joinToString(" ") else "You didn't set a message, but your timer expired!"
-            DB.addTimer(time, userMessage, event.message.channelId.value.toLong(), event.message.id.value.toLong())
+            val userMessage = if (args.size > 1) args.subList(1, args.size).joinToString(" ") else NO_MESSAGE_SET
+
+            DB.addTimer(duration, userMessage, event.message.channelId.value.toLong(), event.message.id.value.toLong())
 
             // Taskmaster foo
             Taskmaster.updateTimers()
 
             // Response message foo
             event.message.addReaction(ReactionEmoji.Unicode(Emojis.alarmClock.unicode))
-            Util.sendMessage(event, "Timer was set for ${rawTime.joinToString("")}. React, if you want to get pinged too as soon as the timer runs out!")
+            Util.sendMessage(event, "Timer was set for ${duration}. React, if you want to get pinged too as soon as the timer runs out!")
         },
         emptyList()
     )
@@ -58,19 +63,94 @@ object ReminderCommand : RuneTextCommand
         if (names.contains(args[0].substring(1))) reminder.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
     }
 
-    private fun convertTimeToMillis(timePieces: List<String>): Duration
+    private fun convertInputStringToDuration(input: String): Duration
     {
-        var totalDuration: Duration = Duration.ZERO
-        for (piece in timePieces)
+        return Duration.parseOrNull(input) ?: Duration.ZERO
+    }
+
+    override val name: String
+        get() = "reminder"
+    override val helpText: String
+        get() = "create reminders"
+
+    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    {
+        with(builder)
         {
-            when (piece.last())
+            subCommand("create", "create a new reminder")
             {
-                's' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().seconds)
-                'm' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().minutes)
-                'h' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().hours)
-                'd' -> totalDuration = totalDuration.plus(piece.substring(0, piece.lastIndex).toInt().days)
+                string("duration", "duration after now until the reminder will trigger")
+                {
+                    required = true
+                }
+                string("message", "what to display when reminder triggers")
+                {
+                    required = false
+                }
+            }
+            subCommand("list", "list currently active reminders")
+            {
+
+            }
+            subCommand("subscribe", "subscribe to an active reminder")
+            {
+
             }
         }
-        return totalDuration
+    }
+
+    override suspend fun execute(event: ChatInputCommandInteractionCreateEvent)
+    {
+        with(event)
+        {
+            val subcommands = interaction.command.data.options.value?.map { it.name } ?: emptyList()
+
+            when (subcommands.firstOrNull())
+            {
+                "create" ->
+                {
+                    val durationString = interaction.command.strings["duration"]!!
+                    val duration = convertInputStringToDuration(durationString)
+                    val message = interaction.command.strings["message"] ?: NO_MESSAGE_SET
+                    val targetTime = System.currentTimeMillis() + duration.inWholeMilliseconds
+                    val channelId = interaction.channelId.value.toLong()
+
+                    val dbResponse = DB.addTimer(targetTime, message, channelId, -1) // -1 should not be an occurring snowflake, as we ignore that part of the DB.
+
+                    when (dbResponse)
+                    {
+                        SUCCESS ->
+                        {
+                            Taskmaster.updateTimers()
+                            val timerIndex = DB.getAllTimers().mapIndexed { index: Int, timerEntry: DB.TimerEntry -> index to timerEntry }
+                                .find { DB.TimerEntry(targetTime, message, channelId, -1) == it.second }?.first
+
+                            interaction.respondPublic {
+                                content = "Timer was set for ${duration}." + if (timerIndex != null) " Subscribe to this reminder with `/reminder subscribe $timerIndex`." else ""
+                            }
+                        }
+
+                        else ->
+                        {
+                            interaction.respondEphemeral { content = "error creating reminder" }
+                        }
+                    }
+
+
+                }
+
+                "list" ->
+                {
+
+                }
+
+                "subscribe" ->
+                {
+
+                }
+
+                else -> interaction.respondEphemeral { content = "error" }
+            }
+        }
     }
 }

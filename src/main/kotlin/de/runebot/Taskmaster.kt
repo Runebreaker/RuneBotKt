@@ -23,7 +23,7 @@ object Taskmaster
         }
     }
 
-    private suspend fun checkTimers()
+    private suspend fun checkTimers() // TODO: support new subscription system: make new DB and ignore old one
     {
         RuneBot.kord?.let { kord ->
             timers.filter {
