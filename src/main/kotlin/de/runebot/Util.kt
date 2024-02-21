@@ -13,12 +13,12 @@ import dev.kord.core.entity.Message
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.exception.EntityNotFoundException
 import dev.kord.rest.builder.message.EmbedBuilder
-import dev.kord.rest.builder.message.create.addFile
+import dev.kord.rest.builder.message.addFile
+import dev.kord.rest.builder.message.modify.InteractionResponseModifyBuilder
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -119,6 +119,22 @@ object Util
         }
     }
 
+    suspend fun respondImage(builder: InteractionResponseModifyBuilder, fileName: String, bufferedImage: BufferedImage)
+    {
+        val outputStream = ByteArrayOutputStream()
+        withContext(Dispatchers.IO) {
+            ImageIO.write(bufferedImage, "png", outputStream)
+        }
+        val inputStream = ByteArrayInputStream(outputStream.toByteArray())
+
+        respondImage(builder, fileName, inputStream)
+    }
+
+    suspend fun respondImage(builder: InteractionResponseModifyBuilder, fileName: String, inputStream: InputStream)
+    {
+        builder.addFile(fileName, ChannelProvider { inputStream.toByteReadChannel() })
+    }
+
     suspend fun sendImage(channel: MessageChannelBehavior, fileName: String, bufferedImage: BufferedImage)
     {
         val outputStream = ByteArrayOutputStream()
@@ -139,46 +155,6 @@ object Util
             }
         }
     }
-
-    // region bullshit
-    suspend fun sendHero(event: MessageCreateEvent)
-    {
-        val someEmbed = EmbedBuilder().apply {
-            title = "this is a title"
-            description = "this is a description"
-            color = Color(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
-            author {
-                name = "An Author"
-                icon = "https://static.planetminecraft.com/files/resource_media/screenshot/1406/herobrine_art_head_thumb.jpg"
-            }
-            url = "http://runebot.de/"
-            thumbnail { url = "https://play-lh.googleusercontent.com/g6TibrD-RIOlVjf_oKn2MyqksmTMlRlX3k5tKpPmxt28RB5R3-QmVIahW1YPlwJMZf8G" }
-            image = "https://64.media.tumblr.com/00bf93271d005b46bdc8f66dd033603c/tumblr_prcjahPboI1wbsgl7_500.jpg"
-            footer {
-                icon = "https://64.media.tumblr.com/avatar_ac6d3497c65b_128.pnj"
-                text = "My Hero Brine"
-            }
-            timestamp = Clock.System.now()
-            field {
-                name = "field 1"
-                value = "value 1"
-                inline = false
-            }
-            field {
-                name = "field 2"
-                value = "value 2"
-                inline = true
-            }
-            field {
-                name = "field 3"
-                value = "value 3"
-                inline = true
-            }
-        }
-
-        event.message.channel.createMessage { embeds.add(someEmbed) }
-    }
-    // endregion
 
     fun replaceUsingRuleset(input: String, ruleset: MutableSet<Rule>): Pair<String, Int>
     {

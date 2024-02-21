@@ -2,6 +2,8 @@ package de.runebot
 
 import de.runebot.config.Config
 import dev.kord.core.Kord
+import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
+import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.on
 import dev.kord.gateway.Intent
@@ -33,7 +35,11 @@ object RuneBot
         kord = Kord(token)
 
         kord?.let { kord ->
-            Registry.messageCommands.forEach { it.prepare(kord) }
+            kord.getGlobalApplicationCommands().collect {
+                it.delete()
+            }
+
+            Registry.prepareCommands(kord)
 
             kord.on<MessageCreateEvent> {
                 if (Config.getValue(this.guildId?.value ?: return@on, "interactsWithBots") == "true")
@@ -47,7 +53,15 @@ object RuneBot
                     if (message.author?.isBot != false) return@on
                 }
 
-                if (!Registry.handleMessageCommands(this)) Registry.handleBehaviors(this)
+                if (!Registry.handleTextCommands(this)) Registry.handleBehaviors(this)
+            }
+
+            kord.on<ChatInputCommandInteractionCreateEvent> {
+                Registry.handleSlashCommands(this)
+            }
+
+            kord.on<MessageCommandInteractionCreateEvent> {
+                Registry.handleMessageCommands(this)
             }
 
             kord.login {

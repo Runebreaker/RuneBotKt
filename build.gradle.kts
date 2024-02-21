@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.10"
-    kotlin("plugin.serialization") version "1.7.10"
+    kotlin("jvm") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
     application
 }
 
@@ -20,25 +20,23 @@ repositories {
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
-    implementation("dev.kord:kord-core:0.10.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
+    implementation("dev.kord:kord-core:0.13.1")
     implementation("dev.kord.x:emoji:0.5.0")
 
-    implementation("org.jetbrains.exposed:exposed-core:0.38.2")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.38.2")
-    implementation("org.xerial:sqlite-jdbc:3.36.0.3")
+    implementation("org.jetbrains.exposed:exposed-core:0.46.0")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.46.0")
+    implementation("org.xerial:sqlite-jdbc:3.45.0.0")
 
     implementation("info.debatty:java-string-similarity:2.0.0")
 
-    implementation("com.twelvemonkeys.imageio:imageio-core:3.9.4")
-    implementation("com.twelvemonkeys.imageio:imageio-webp:3.9.4")
+    implementation("com.twelvemonkeys.imageio:imageio-core:3.10.1")
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.10.1")
 
-    implementation("org.jsoup:jsoup:1.15.3")
+    implementation("org.jsoup:jsoup:1.17.2")
     implementation("org.jclarion:image4j:0.7")
 
-    implementation("org.jetbrains.exposed:exposed-java-time:0.38.2")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.46.0")
 
     implementation("com.github.Redempt:Crunch:1.1.3")
 }
@@ -48,7 +46,7 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "21"
 }
 
 application {

@@ -2,11 +2,15 @@ package de.runebot.commands
 
 import de.runebot.Util
 import dev.kord.core.Kord
+import dev.kord.core.behavior.interaction.response.respond
+import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
+import dev.kord.rest.builder.interaction.string
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
-object AcronymCommand : MessageCommandInterface
+object AcronymCommand : RuneTextCommand, RuneSlashCommand
 {
     override val names: List<String>
         get() = listOf("acronym", "acro")
@@ -46,14 +50,44 @@ object AcronymCommand : MessageCommandInterface
 
         Util.sendMessage(
             event,
-            input
-                .split(System.lineSeparator()).joinToString(separator = System.lineSeparator() + System.lineSeparator()) {
-                    it.split(" ").joinToString(separator = System.lineSeparator()) { str ->
-                        str.map { c ->
-                            dictionary[c.lowercaseChar()]?.random() ?: c
-                        }.joinToString(separator = " ")
-                    }
-                }
+            createResponse(input)
         )
+    }
+
+    private fun createResponse(input: String): String
+    {
+        return input
+            .split(System.lineSeparator()).joinToString(separator = System.lineSeparator() + System.lineSeparator()) {
+                it.split(" ").joinToString(separator = System.lineSeparator()) { str ->
+                    str.map { c ->
+                        dictionary[c.lowercaseChar()]?.random() ?: c
+                    }.joinToString(separator = " ")
+                }
+            }
+    }
+
+    override val name: String
+        get() = "acronym"
+    override val helpText: String
+        get() = shortHelpText
+
+    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    {
+        with(builder)
+        {
+            string("word", "some alleged acronym") {
+                required = true
+            }
+        }
+    }
+
+    override suspend fun execute(event: ChatInputCommandInteractionCreateEvent)
+    {
+        with(event)
+        {
+            val response = interaction.deferPublicResponse()
+            val input = interaction.command.strings["word"]!!
+            response.respond { content = createResponse(input) }
+        }
     }
 }
