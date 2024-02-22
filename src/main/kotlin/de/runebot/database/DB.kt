@@ -1,8 +1,7 @@
 package de.runebot.database
 
 import de.runebot.commands.NumbersCommand.DoujinData
-import kotlinx.datetime.toJavaLocalDate
-import kotlinx.datetime.toKotlinLocalDate
+import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.exceptions.ExposedSQLException
@@ -31,7 +30,7 @@ object DB
         ghtTagDB = Database.connect("jdbc:sqlite:$pathToGhtTags")
 
         transaction(mainDB) {
-            SchemaUtils.create(UserCollections, Timers, Tags)
+            SchemaUtils.create(UserCollections, Timers, Tags, TimersV2)
         }
 
         transaction(doujinDB) {
@@ -205,16 +204,16 @@ object DB
     //endregion
 
     //region Timer API
-    fun addTimer(targetTime: Long, message: String, channelId: Long, messageId: Long = -1): DBResponse
+    fun addTimer(creatorId: ULong, targetTime: Instant, message: String): DBResponse
     {
         try
         {
             return transaction(mainDB) {
-                Timers.insert {
-                    it[this.targetTime] = targetTime
+                TimersV2.insert {
+                    it[this.creatorId] = creatorId
+                    it[this.targetTime] = targetTime.toJavaInstant()
                     it[this.message] = message
-                    it[this.channelId] = channelId
-                    it[this.messageId] = messageId
+                    it[this.subscriberIds] = serializer.encodeToString(listOf(creatorId)) // by default, only the creator is subscribed
                 }
                 return@transaction DBResponse.SUCCESS
             }
@@ -225,12 +224,26 @@ object DB
         }
     }
 
-    fun addTimer(duration: Duration, message: String, channelId: Long, messageId: Long): DBResponse
+    fun addTimer(creatorId: ULong, duration: Duration, message: String): DBResponse
     {
-        return addTimer(System.currentTimeMillis() + duration.inWholeMilliseconds, message, channelId, messageId)
+        return addTimer(creatorId, Clock.System.now() + duration, message)
     }
 
-    fun removeTimer(channelId: Long, messageId: Long): DBResponse
+    fun subscribeToTimer(creatorId: ULong, targetTime: Instant, message: String): DBResponse
+    {
+        try
+        {
+            transaction(mainDB) {
+                // TODO: get and then update?
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return DBResponse.FAILURE
+        }
+    }
+
+    fun removeOldTimer(channelId: Long, messageId: Long): DBResponse
     {
         try
         {
@@ -252,9 +265,15 @@ object DB
         try
         {
             return transaction(mainDB) {
-                return@transaction Timers.selectAll().map {
-                    TimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
-                }.sortedBy { it.targetTime }
+                return@transaction TimersV2.selectAll().mapNotNull {
+                    try
+                    {
+                        TimerEntry(it[TimersV2.creatorId], it[TimersV2.targetTime].toKotlinInstant(), it[TimersV2.message], serializer.decodeFromString(it[TimersV2.subscriberIds]))
+                    } catch (e: Exception)
+                    {
+                        return@mapNotNull null
+                    }
+                }
             }
         } catch (e: ExposedSQLException)
         {
@@ -263,22 +282,24 @@ object DB
         }
     }
 
-    fun removeAllTimers(): DBResponse
+    fun getAllOldTimers(): List<OldTimerEntry>
     {
         try
         {
             return transaction(mainDB) {
-                Timers.deleteAll()
-                return@transaction DBResponse.SUCCESS
+                return@transaction Timers.selectAll().map {
+                    OldTimerEntry(it[Timers.targetTime], it[Timers.message], it[Timers.channelId], it[Timers.messageId])
+                }
             }
         } catch (e: ExposedSQLException)
         {
             e.printStackTrace()
-            return DBResponse.FAILURE
+            return emptyList()
         }
     }
 
-    data class TimerEntry(val targetTime: Long, val message: String, val channelId: Long, val messageId: Long)
+    data class TimerEntry(val creatorId: ULong, val targetTime: Instant, val message: String, val subscriberIds: List<ULong>)
+    data class OldTimerEntry(val targetTime: Long, val message: String, val channelId: Long, val messageId: Long)
     //endregion
 
     //region Collection API

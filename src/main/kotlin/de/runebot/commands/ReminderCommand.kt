@@ -10,9 +10,7 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.entity.ReactionEmoji
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
-import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
-import dev.kord.rest.builder.interaction.string
-import dev.kord.rest.builder.interaction.subCommand
+import dev.kord.rest.builder.interaction.*
 import dev.kord.x.emoji.Emojis
 import kotlin.time.Duration
 
@@ -88,13 +86,23 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
                     required = false
                 }
             }
-            subCommand("list", "list currently active reminders")
+            subCommand("list", "list a users currently active reminders")
             {
-
+                user("target", "what user's reminders to list")
+                {
+                    required = false
+                }
             }
             subCommand("subscribe", "subscribe to an active reminder")
             {
-
+                user("target", "who this reminder belongs to")
+                {
+                    required = true
+                }
+                integer("index", "which one according to /reminder list")
+                {
+                    required = true
+                }
             }
         }
     }
@@ -122,8 +130,8 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
                         SUCCESS ->
                         {
                             Taskmaster.updateTimers()
-                            val timerIndex = DB.getAllTimers().mapIndexed { index: Int, timerEntry: DB.TimerEntry -> index to timerEntry }
-                                .find { DB.TimerEntry(targetTime, message, channelId, -1) == it.second }?.first
+                            val timerIndex = DB.getAllOldTimers().mapIndexed { index: Int, oldTimerEntry: DB.OldTimerEntry -> index to oldTimerEntry }
+                                .find { DB.OldTimerEntry(targetTime, message, channelId, -1) == it.second }?.first
 
                             interaction.respondPublic {
                                 content = "Timer was set for ${duration}." + if (timerIndex != null) " Subscribe to this reminder with `/reminder subscribe $timerIndex`." else ""
