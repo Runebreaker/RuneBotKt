@@ -1,6 +1,7 @@
 package de.runebot.database
 
 import de.runebot.commands.NumbersCommand.DoujinData
+import dev.kord.common.toMessageFormat
 import kotlinx.datetime.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -204,42 +205,90 @@ object DB
     //endregion
 
     //region Timer API
-    fun addTimer(creatorId: ULong, targetTime: Instant, message: String): DBResponse
+
+    /**
+     * @return inserted Timer Entry if successful, null if not
+     */
+    fun addTimer(creatorId: ULong, targetTime: Instant, message: String): TimerEntry?
     {
         try
         {
             return transaction(mainDB) {
-                TimersV2.insert {
+                return@transaction TimersV2.insert {
                     it[this.creatorId] = creatorId
                     it[this.targetTime] = targetTime.toJavaInstant()
                     it[this.message] = message
                     it[this.subscriberIds] = serializer.encodeToString(listOf(creatorId)) // by default, only the creator is subscribed
+                }.resultedValues?.firstNotNullOfOrNull {
+                    TimerEntry.from(it)
                 }
-                return@transaction DBResponse.SUCCESS
             }
         } catch (e: ExposedSQLException)
         {
             e.printStackTrace()
-            return DBResponse.FAILURE
+            return null
         }
     }
 
-    fun addTimer(creatorId: ULong, duration: Duration, message: String): DBResponse
+    fun addTimer(creatorId: ULong, duration: Duration, message: String): TimerEntry?
     {
         return addTimer(creatorId, Clock.System.now() + duration, message)
     }
 
-    fun subscribeToTimer(creatorId: ULong, targetTime: Instant, message: String): DBResponse
+    fun getTimer(id: Int): TimerEntry?
     {
         try
         {
-            transaction(mainDB) {
-                // TODO: get and then update?
+            return transaction(mainDB) {
+                return@transaction TimersV2.selectAll().where {
+                    TimersV2.id eq id
+                }.firstNotNullOfOrNull {
+                    TimerEntry.from(it)
+                }
             }
         } catch (e: ExposedSQLException)
         {
             e.printStackTrace()
-            return DBResponse.FAILURE
+            return null
+        }
+    }
+
+    /**
+     * @return what TimerEntry was subscribed to or null if error
+     */
+    fun subscribeToTimer(id: Int, userId: ULong): TimerEntry?
+    {
+        val timer = getTimer(id) ?: return null
+
+        try
+        {
+            transaction(mainDB) {
+                TimersV2.update(where = {
+                    TimersV2.id eq id
+                }) {
+                    it[this.subscriberIds] = serializer.encodeToString(timer.subscriberIds.toMutableList().add(userId))
+                }
+            }
+            return timer
+        } catch (e: Exception)
+        {
+            e.printStackTrace()
+            return null
+        }
+    }
+
+    fun removeTimer(id: Int)
+    {
+        try
+        {
+            transaction(mainDB) {
+                TimersV2.deleteWhere {
+                    TimersV2.id eq id
+                }
+            }
+        } catch (e: Exception)
+        {
+            e.printStackTrace()
         }
     }
 
@@ -260,19 +309,31 @@ object DB
         }
     }
 
+    fun getTimersForCreator(creatorId: ULong): List<TimerEntry>
+    {
+        try
+        {
+            return transaction(mainDB) {
+                return@transaction TimersV2.selectAll().where {
+                    TimersV2.creatorId eq creatorId
+                }.mapNotNull {
+                    TimerEntry.from(it)
+                }
+            }
+        } catch (e: ExposedSQLException)
+        {
+            e.printStackTrace()
+            return emptyList()
+        }
+    }
+
     fun getAllTimers(): List<TimerEntry>
     {
         try
         {
             return transaction(mainDB) {
                 return@transaction TimersV2.selectAll().mapNotNull {
-                    try
-                    {
-                        TimerEntry(it[TimersV2.creatorId], it[TimersV2.targetTime].toKotlinInstant(), it[TimersV2.message], serializer.decodeFromString(it[TimersV2.subscriberIds]))
-                    } catch (e: Exception)
-                    {
-                        return@mapNotNull null
-                    }
+                    TimerEntry.from(it)
                 }
             }
         } catch (e: ExposedSQLException)
@@ -298,7 +359,34 @@ object DB
         }
     }
 
-    data class TimerEntry(val creatorId: ULong, val targetTime: Instant, val message: String, val subscriberIds: List<ULong>)
+    data class TimerEntry(val id: Int, val creatorId: ULong, val targetTime: Instant, val message: String, val subscriberIds: List<ULong>)
+    {
+        override fun toString(): String
+        {
+            return "$id: ${targetTime.toMessageFormat()} $message"
+        }
+
+        companion object
+        {
+            fun from(resultRow: ResultRow): TimerEntry?
+            {
+                return try
+                {
+                    TimerEntry(
+                        resultRow[TimersV2.id],
+                        resultRow[TimersV2.creatorId],
+                        resultRow[TimersV2.targetTime].toKotlinInstant(),
+                        resultRow[TimersV2.message],
+                        serializer.decodeFromString(resultRow[TimersV2.subscriberIds])
+                    )
+                } catch (e: Exception)
+                {
+                    return null
+                }
+            }
+        }
+    }
+
     data class OldTimerEntry(val targetTime: Long, val message: String, val channelId: Long, val messageId: Long)
     //endregion
 

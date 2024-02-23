@@ -25,12 +25,13 @@ object Timers : Table()
 
 object TimersV2 : Table()
 {
+    val id = integer("id").autoIncrement()
     val creatorId = ulong("creatorId")
     val targetTime = timestamp("targetTime")
     val message = text("message")
     val subscriberIds = text("subscriberIds") // list of uLongs as JSON
 
-    override val primaryKey = PrimaryKey(creatorId, targetTime, message)
+    override val primaryKey = PrimaryKey(id)
 }
 
 object Tags : Table()

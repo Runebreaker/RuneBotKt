@@ -1,7 +1,9 @@
 package de.runebot
 
+import co.touchlab.stately.concurrency.synchronize
 import de.runebot.database.DB
 import dev.kord.common.entity.Snowflake
+import dev.kord.common.toMessageFormat
 import dev.kord.core.behavior.UserBehavior
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
@@ -9,7 +11,6 @@ import dev.kord.core.entity.ReactionEmoji
 import dev.kord.x.emoji.Emojis
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
-import java.time.format.DateTimeFormatter
 
 object Taskmaster
 {
@@ -29,7 +30,15 @@ object Taskmaster
         }
     }
 
-    private suspend fun checkOldTimers() // TODO: support new subscription system: make new DB and ignore old one
+    fun updateTimers()
+    {
+        synchronize {
+            oldTimers = DB.getAllOldTimers()
+            timers = DB.getAllTimers()
+        }
+    }
+
+    private suspend fun checkOldTimers()
     {
         RuneBot.kord?.let { kord ->
             oldTimers.filter {
@@ -48,7 +57,6 @@ object Taskmaster
                 }
                 Util.sendMessage(channel, builtMessage.toString())
                 DB.removeOldTimer(channelId, messageId)
-                updateTimers()
             }
         }
     }
@@ -60,7 +68,7 @@ object Taskmaster
 
             timers
                 .sortedBy { it.targetTime } // sort for performance improvement
-                .forEach { (creatorId, targetTime, message, subscriberIds) ->
+                .forEach { (id, creatorId, targetTime, message, subscriberIds) ->
                     if (targetTime > now)
                     {
                         return // possible, because list is sorted
@@ -69,19 +77,15 @@ object Taskmaster
                     subscriberIds.forEach { userId ->
                         UserBehavior(Snowflake(userId), kord).getDmChannelOrNull()?.let { dmChannel ->
                             dmChannel.createMessage {
-                                content = "**Reminder for ${DateTimeFormatter.RFC_1123_DATE_TIME}**" +
+                                content = "**Reminder for ${targetTime.toMessageFormat()}**" +
                                         "\n$message"
                             }
                         }
                     }
 
-                    // TODO: remove from db
+                    DB.removeTimer(id)
+                    updateTimers()
                 }
         }
-    }
-
-    fun updateTimers()
-    {
-        oldTimers = DB.getAllOldTimers()
     }
 }
