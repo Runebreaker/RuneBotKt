@@ -259,6 +259,8 @@ object DB
     fun subscribeToTimer(id: Int, userId: ULong): TimerEntry?
     {
         val timer = getTimer(id) ?: return null
+        val subscribers = timer.subscriberIds.toMutableList()
+        subscribers.add(userId)
 
         try
         {
@@ -266,7 +268,7 @@ object DB
                 TimersV2.update(where = {
                     TimersV2.id eq id
                 }) {
-                    it[this.subscriberIds] = serializer.encodeToString(timer.subscriberIds.toMutableList().add(userId))
+                    it[this.subscriberIds] = serializer.encodeToString(subscribers)
                 }
             }
             return timer
@@ -363,7 +365,7 @@ object DB
     {
         override fun toString(): String
         {
-            return "$id: ${targetTime.toMessageFormat()} $message"
+            return "($id) ${targetTime.toMessageFormat()} \"$message\""
         }
 
         companion object

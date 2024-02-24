@@ -3,13 +3,14 @@ package de.runebot.commands
 import de.runebot.Taskmaster
 import de.runebot.Util
 import de.runebot.database.DB
-import dev.kord.common.toMessageFormat
 import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
+import dev.kord.core.entity.effectiveName
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.builder.interaction.*
+import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import kotlin.time.Duration
 
@@ -17,8 +18,8 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
 {
     private const val NO_MESSAGE_SET = "You didn't set a message, but your timer expired!"
 
-    private val subscribeSubCommand = RuneTextCommand.Subcommand(
-        RuneTextCommand.CommandDescription(listOf("subscribe"), "subscribe <id>" to "subscribe to an active reminder"),
+    private val subscribeSubcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("subscribe", "sub"), "subscribe <id>" to "Subscribe to an active reminder."),
         { event, args, _ ->
             val id = args[0].toIntOrNull()
             val userId = event.message.author?.id?.value
@@ -28,22 +29,57 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
                 val timer = DB.subscribeToTimer(id, userId)
                 if (timer != null)
                 {
+                    Taskmaster.updateTimers()
                     Util.sendMessage(event, "Successfully subscribed to $timer.")
+                    return@Subcommand
                 }
             }
 
+            Util.sendMessage(event, "${args[0]} is not a valid id. Use `>reminder list <someUser>` to find the right id.")
+        }, emptyList()
+    )
 
+    private val listSubcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("list"), "list [<user>]" to "List a user's active reminders."),
+        { event, _, _ ->
+            val mentions = event.message.mentionedUsers.toList()
+            val creator = mentions.firstOrNull() ?: event.message.author
 
+            if (creator == null)
+            {
+                Util.sendMessage(event, "Error finding user!")
+                return@Subcommand
+            }
 
-            Util.sendMessage(event, "${args[0]} is not a valid id. Use `>reminder list <someUser>` to find the right id.") // TODO: create subcommand
+            val timers = DB.getTimersForCreator(creator.id.value)
+                .sortedBy { it.targetTime }
+
+            if (timers.isEmpty())
+            {
+                Util.sendMessage(event, "No active reminders found for ${creator.effectiveName}.")
+                return@Subcommand
+            }
+
+            Util.sendMessage(event, timers.joinToString(separator = "\n", prefix = "**Active reminders for ${creator.effectiveName}:**\n")
+            {
+                "- $it"
+            })
+            return@Subcommand
         }, emptyList()
     )
 
     private val reminder = RuneTextCommand.Subcommand(
-        RuneTextCommand.CommandDescription(names, Pair("reminder <time> <message>", "After specified time, posts the given message and mentions the author and reactors.")),
+        RuneTextCommand.CommandDescription(names, Pair("reminder <time> [<message>]", "After the specified time, you and all subscribers will be dm-ed with a custom message.")),
         { event, args, _ ->
             // Extract time
             val duration = convertInputStringToDuration(args[0])
+
+            if (duration == null)
+            {
+                Util.sendMessage(event, "Invalid time formatting: \"${args[0]}\"")
+                return@Subcommand
+            }
+
             val targetTime = Clock.System.now() + duration
 
             // DB Operation
@@ -57,14 +93,14 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
                     Taskmaster.updateTimers()
                     Util.sendMessage(
                         event,
-                        "Timer was set for ${targetTime.toMessageFormat()}. Subscribe to this reminder with `>reminder subscribe ${timer.id}`."
+                        "Successfully created $timer.\nSubscribe to this reminder with `>reminder subscribe ${timer.id}`."
                     )
                     return@Subcommand
                 }
             }
-            Util.sendMessage(event, "error creating reminder")
+            Util.sendMessage(event, "Error creating reminder.")
         },
-        listOf(subscribeSubCommand)
+        listOf(subscribeSubcommand, listSubcommand)
     )
 
     override val names: List<String>
@@ -88,9 +124,9 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
         if (names.contains(args[0].substring(1))) reminder.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
     }
 
-    private fun convertInputStringToDuration(input: String): Duration
+    private fun convertInputStringToDuration(input: String): Duration?
     {
-        return Duration.parseOrNull(input) ?: Duration.ZERO
+        return Duration.parseOrNull(input)
     }
 
     override val name: String
@@ -102,27 +138,27 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
     {
         with(builder)
         {
-            subCommand("new", "create a new reminder")
+            subCommand("new", "Create a new reminder.")
             {
-                string("duration", "duration after now until the reminder will trigger")
+                string("duration", "Duration after now until the reminder will trigger.")
                 {
                     required = true
                 }
-                string("message", "what to display when reminder triggers")
+                string("message", "What to display when the reminder triggers.")
                 {
                     required = false
                 }
             }
-            subCommand("list", "list a users currently active reminders")
+            subCommand("list", "List a user's currently active reminders.")
             {
-                user("target", "what user's reminders to list")
+                user("target", "What user's reminders to list.")
                 {
                     required = false
                 }
             }
-            subCommand("subscribe", "subscribe to an active reminder")
+            subCommand("subscribe", "Subscribe to an active reminder.")
             {
-                integer("id", "id according to /reminder list")
+                integer("id", "Id according to /reminder list.")
                 {
                     required = true
                 }
@@ -138,10 +174,19 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
 
             when (subcommands.firstOrNull())
             {
-                "create" ->
+                "new" ->
                 {
                     val durationString = interaction.command.strings["duration"]!!
                     val duration = convertInputStringToDuration(durationString)
+
+                    if (duration == null)
+                    {
+                        interaction.respondEphemeral {
+                            content = "Invalid time formatting: \"$durationString\""
+                        }
+                        return
+                    }
+
                     val message = interaction.command.strings["message"] ?: NO_MESSAGE_SET
                     val targetTime = Clock.System.now() + duration
                     val creatorId = interaction.user.id.value
@@ -149,7 +194,7 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
                     DB.addTimer(creatorId, targetTime, message)?.let { timer ->
                         Taskmaster.updateTimers()
                         interaction.respondPublic {
-                            content = "Timer was set for ${targetTime.toMessageFormat()}. Subscribe to this reminder with `/reminder subscribe ${timer.id}`."
+                            content = "Successfully created $timer.\nSubscribe to this reminder with `/reminder subscribe ${timer.id}`."
                         }
                         return
                     }
@@ -159,15 +204,48 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
 
                 "list" ->
                 {
+                    val creator = interaction.command.users["target"] ?: interaction.user
+                    val timers = DB.getTimersForCreator(creator.id.value)
+                        .sortedBy { it.targetTime }
 
+                    if (timers.isEmpty())
+                    {
+                        interaction.respondEphemeral {
+                            content = "No active reminders found for ${creator.effectiveName}."
+                        }
+                        return
+                    }
+
+                    interaction.respondEphemeral {
+                        content = timers.joinToString(separator = "\n", prefix = "**Active reminders for ${creator.effectiveName}:**\n")
+                        {
+                            "- $it"
+                        }
+                    }
+                    return
                 }
 
                 "subscribe" ->
                 {
+                    val id = interaction.command.integers["id"]!!
+                    val userId = interaction.user.id.value
 
+                    val timer = DB.subscribeToTimer(id.toInt(), userId)
+                    if (timer != null)
+                    {
+                        Taskmaster.updateTimers()
+                        interaction.respondEphemeral {
+                            content = "Successfully subscribed to $timer."
+                        }
+                        return
+                    }
+
+                    interaction.respondEphemeral {
+                        content = "$id is not a valid id. Use `/reminder list` to find the right id."
+                    }
                 }
 
-                else -> interaction.respondEphemeral { content = "error" }
+                else -> interaction.respondEphemeral { content = "Error." }
             }
         }
     }
