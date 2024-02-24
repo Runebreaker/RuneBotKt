@@ -40,6 +40,7 @@ object Taskmaster
 
     private suspend fun checkOldTimers()
     {
+        // TODO: remove in the future
         RuneBot.kord?.let { kord ->
             oldTimers.filter {
                 it.targetTime <= System.currentTimeMillis()
