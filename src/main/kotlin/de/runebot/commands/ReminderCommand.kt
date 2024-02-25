@@ -68,7 +68,7 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
         }, emptyList()
     )
 
-    private val reminder = RuneTextCommand.Subcommand(
+    private val reminder = RuneTextCommand.Subcommand( // TODO: remove reminder if owner
         RuneTextCommand.CommandDescription(names, Pair("reminder <time> [<message>]", "After the specified time, you and all subscribers will be dm-ed with a custom message.")),
         { event, args, _ ->
             // Extract time
@@ -134,7 +134,7 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
     override val helpText: String
         get() = "create reminders"
 
-    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder) // TODO: remove reminder if owner
     {
         with(builder)
         {
