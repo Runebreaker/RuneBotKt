@@ -39,6 +39,28 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
         }, emptyList()
     )
 
+    private val deleteSubcommand = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(listOf("delete", "del"), "delete <id>" to "Delete one of your reminders."),
+        { event, args, _ ->
+            val id = args[0].toIntOrNull()
+            val userId = event.message.author?.id?.value
+
+            if (id != null && userId != null)
+            {
+                val timer = DB.getTimer(id)
+                if (timer != null)
+                {
+                    DB.removeTimer(id)
+                    Taskmaster.updateTimers()
+                    Util.sendMessage(event, "Successfully removed to $timer.")
+                    return@Subcommand
+                }
+            }
+
+            Util.sendMessage(event, "${args[0]} is not a valid id. Use `>reminder list` to find the right id.")
+        }, emptyList()
+    )
+
     private val listSubcommand = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(listOf("list"), "list [<user>]" to "List a user's active reminders."),
         { event, _, _ ->
@@ -68,7 +90,7 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
         }, emptyList()
     )
 
-    private val reminder = RuneTextCommand.Subcommand( // TODO: remove reminder if owner
+    private val reminder = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(names, Pair("reminder <time> [<message>]", "After the specified time, you and all subscribers will be dm-ed with a custom message.")),
         { event, args, _ ->
             // Extract time
@@ -100,7 +122,7 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
             }
             Util.sendMessage(event, "Error creating reminder.")
         },
-        listOf(subscribeSubcommand, listSubcommand)
+        listOf(subscribeSubcommand, listSubcommand, deleteSubcommand)
     )
 
     override val names: List<String>
@@ -134,7 +156,7 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
     override val helpText: String
         get() = "create reminders"
 
-    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder) // TODO: remove reminder if owner
+    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
     {
         with(builder)
         {
@@ -157,6 +179,13 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
                 }
             }
             subCommand("subscribe", "Subscribe to an active reminder.")
+            {
+                integer("id", "Id according to /reminder list.")
+                {
+                    required = true
+                }
+            }
+            subCommand("delete", "Delete one of your reminders.")
             {
                 integer("id", "Id according to /reminder list.")
                 {
@@ -242,6 +271,37 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
 
                     interaction.respondEphemeral {
                         content = "$id is not a valid id. Use `/reminder list` to find the right id."
+                    }
+                }
+
+                "delete" ->
+                {
+                    val id = interaction.command.integers["id"]!!.toInt()
+                    val userId = interaction.user.id.value
+
+                    val timer = DB.getTimer(id)
+
+                    if (timer == null)
+                    {
+                        interaction.respondEphemeral {
+                            content = "$id is not a valid id. Use `/reminder list` to find the right id."
+                        }
+                        return
+                    }
+
+                    if (timer.creatorId != userId)
+                    {
+                        interaction.respondEphemeral {
+                            content = "You are not the owner of this Reminder!"
+                        }
+                        return
+                    }
+
+                    DB.removeTimer(id)
+                    Taskmaster.updateTimers()
+
+                    interaction.respondPublic {
+                        content = "Successfully deleted $timer."
                     }
                 }
 
