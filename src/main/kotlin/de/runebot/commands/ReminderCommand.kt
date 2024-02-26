@@ -222,7 +222,7 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
 
                     DB.addTimer(creatorId, targetTime, message)?.let { timer ->
                         Taskmaster.updateTimers()
-                        interaction.respondPublic {
+                        interaction.respondPublic {// TODO: investigate emoji confirmation for tag creation subscription
                             content = "Successfully created $timer.\nSubscribe to this reminder with `/reminder subscribe ${timer.id}`."
                         }
                         return
