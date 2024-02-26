@@ -67,7 +67,7 @@ object RolepingCommand : RuneTextCommand
         Util.sendMessage(event, finalMessage.toString())
     }
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
         this.kord = kord
     }

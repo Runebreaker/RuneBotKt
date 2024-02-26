@@ -15,7 +15,7 @@ object HelpCommand : RuneTextCommand
         get() = "`$commandExample`: show help overview\n" +
                 "`$commandExample command`: show detailed help for given command"
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }

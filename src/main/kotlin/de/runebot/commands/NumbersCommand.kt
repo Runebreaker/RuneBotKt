@@ -105,7 +105,7 @@ object NumbersCommand : RuneTextCommand
 
     //region Inherited
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
         // Prep kord behaviour for events
         this.kord = kord

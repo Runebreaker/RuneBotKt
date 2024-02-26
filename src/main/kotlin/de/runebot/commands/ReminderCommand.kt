@@ -44,7 +44,7 @@ object ReminderCommand : RuneTextCommand
         get() = reminder.toTree().toString()
     private val regex = Regex("\\d+[smhd]")
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }

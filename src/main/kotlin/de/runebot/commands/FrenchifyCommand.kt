@@ -64,7 +64,7 @@ object FrenchifyCommand : RuneTextCommand, RuneMessageCommand
         "z" to "pédale"
     )
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }

@@ -19,7 +19,7 @@ object ConfigCommand : RuneTextCommand
     override val needsAdmin: Boolean
         get() = true
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }

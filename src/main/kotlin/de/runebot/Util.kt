@@ -13,10 +13,7 @@ import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.edit
 import dev.kord.core.cache.data.*
-import dev.kord.core.entity.Embed
-import dev.kord.core.entity.Message
-import dev.kord.core.entity.ReactionEmoji
-import dev.kord.core.entity.User
+import dev.kord.core.entity.*
 import dev.kord.core.entity.interaction.GuildButtonInteraction
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.core.exception.EntityNotFoundException
@@ -24,9 +21,8 @@ import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.MessageBuilder
 import dev.kord.rest.builder.message.addFile
-import dev.kord.x.emoji.Emojis
-import dev.kord.rest.builder.message.addFile
 import dev.kord.rest.builder.message.modify.InteractionResponseModifyBuilder
+import dev.kord.x.emoji.Emojis
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
@@ -601,8 +597,8 @@ object Util
         abstract val infoString: String
 
         // Catalogue
-        abstract fun createInfoPage(author: User? = null): EmbedCatalogue.CataloguePage
-        abstract fun createPuzzlePage(author: User? = null): EmbedCatalogue.CataloguePage
+        abstract suspend fun createInfoPage(author: User? = null): EmbedCatalogue.CataloguePage
+        abstract suspend fun createPuzzlePage(author: User? = null): EmbedCatalogue.CataloguePage
         fun createHintCatalogue(): EmbedCatalogue
         {
             val catalogue = EmbedCatalogue()
@@ -708,29 +704,29 @@ object Util
     {
         override val infoString: String = "Please provide the input and output of the puzzle in the following format: (input,output)"
 
-        override fun createInfoPage(author: User?): EmbedCatalogue.CataloguePage
+        override suspend fun createInfoPage(author: User?): EmbedCatalogue.CataloguePage
         {
             val page = EmbedCatalogue.CataloguePage()
             page.setTitle("$puzzleId - $name - Difficulty: $difficulty")
-            page.setDescription("Maximum Tries: $maxAttempts\n$description")
+            page.setDescription(description)
             page.addFields(
                 EmbedFieldData("Maximum Tries", maxAttempts.toString()),
                 EmbedFieldData("Description", description, OptionalBoolean.Value(true)),
                 EmbedFieldData("Reward Type", rewardType.toString()),
                 EmbedFieldData("Reward Amount", rewardAmount.toString(), OptionalBoolean.Value(true)),
             )
-            page.setFooter("Puzzle by: ${author?.username ?: "Unknown User"}")
+            page.setFooter("Puzzle by: ${RuneBot.kord?.getUser(Snowflake(creatorId))?.effectiveName ?: "Unknown User"}")
             page.apply()
 
             return page
         }
 
-        override fun createPuzzlePage(author: User?): EmbedCatalogue.CataloguePage
+        override suspend fun createPuzzlePage(author: User?): EmbedCatalogue.CataloguePage
         {
             val page = EmbedCatalogue.CataloguePage()
             page.setTitle("$puzzleId - $name - Difficulty: $difficulty")
             page.setDescription(input)
-            page.setFooter("Puzzle by: ${author?.username ?: "Unknown User"}")
+            page.setFooter("Puzzle by: ${RuneBot.kord?.getUser(Snowflake(creatorId))?.effectiveName ?: "Unknown User"}")
             page.apply()
 
             return page

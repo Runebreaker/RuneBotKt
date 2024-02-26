@@ -36,7 +36,7 @@ object AcronymCommand : RuneTextCommand, RuneSlashCommand
         dictionary = buffer
     }
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
         this.kord = kord
     }

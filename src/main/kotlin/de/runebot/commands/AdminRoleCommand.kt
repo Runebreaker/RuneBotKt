@@ -14,7 +14,7 @@ object AdminRoleCommand : RuneTextCommand
     override val longHelpText: String
         get() = "`${commandExample} id`:set admin role id to `id`"
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }

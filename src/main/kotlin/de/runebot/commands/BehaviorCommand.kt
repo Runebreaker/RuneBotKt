@@ -27,7 +27,7 @@ object BehaviorCommand : RuneTextCommand
         get() = Registry.behaviors.map { behavior -> behavior::class.simpleName.toString() }.toSet()
 
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }

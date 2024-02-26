@@ -13,7 +13,7 @@ object ImpostorCommand : RuneTextCommand
     override val longHelpText: String
         get() = "`$commandExample`: lists impostors on this server"
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }

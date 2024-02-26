@@ -55,7 +55,7 @@ object AnilistCommand : RuneTextCommand
     private const val anilistUrl = "https://graphql.anilist.co"
     private val serializer = Json
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
         println("Anilist integration ready.")
     }

@@ -17,7 +17,7 @@ object MockCommand : RuneTextCommand, RuneMessageCommand
     override val longHelpText: String
         get() = "`$commandExample`: use this command as a reply to a message you want to mock"
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
 
     }
