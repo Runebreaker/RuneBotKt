@@ -13,6 +13,7 @@ import dev.kord.rest.builder.interaction.*
 import kotlinx.coroutines.flow.toList
 import kotlinx.datetime.Clock
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 
 object ReminderCommand : RuneTextCommand, RuneSlashCommand
 {
@@ -148,7 +149,9 @@ object ReminderCommand : RuneTextCommand, RuneSlashCommand
 
     private fun convertInputStringToDuration(input: String): Duration?
     {
-        return Duration.parseOrNull(input)
+        val duration = Duration.parseOrNull(input) ?: return null
+        if (duration > 2000.days) return null
+        return duration
     }
 
     override val name: String
