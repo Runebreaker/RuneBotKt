@@ -144,7 +144,7 @@ object TagCommand : RuneTextCommand, RuneSlashCommand
 
     private val allowedTagNamePattern = Regex("[\\w\\däüöß]+")
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
         this.kord = kord
     }

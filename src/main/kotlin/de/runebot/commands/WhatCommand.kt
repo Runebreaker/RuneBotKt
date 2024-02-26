@@ -8,11 +8,8 @@ import dev.kord.core.cache.data.EmojiData
 import dev.kord.core.entity.GuildEmoji
 import dev.kord.core.entity.Member
 import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
-import dev.kord.core.entity.Message
-import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
-import dev.kord.core.on
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.geom.Ellipse2D
@@ -52,26 +49,18 @@ object WhatCommand : RuneTextCommand, RuneMessageCommand
     override suspend fun execute(event: MessageCreateEvent, args: List<String>)
     {
         event.message.referencedMessage?.let { referencedMessage ->
-            generateMeme(referencedMessage, args)
-        }
-        // if anything else fails, it must be user-error
-        Util.sendMessage(event, "`${HelpCommand.commandExample} ${names.firstOrNull()}`")
-    }
+            if (System.currentTimeMillis() > lastEmojiUpdate + 1.days.inWholeMilliseconds) loadCurrentEmojiList()
 
-    private suspend fun generateMeme(referencedMessage: Message, args: List<String> = emptyList())
-    {
-        if (System.currentTimeMillis() > lastEmojiUpdate + 1.days.inWholeMilliseconds) loadCurrentEmojiList()
+            val content = referencedMessage.content
+            val index = args.getOrNull(1)?.toIntOrNull() ?: 0
 
-        val content = referencedMessage.content
-        val index = args.getOrNull(1)?.toIntOrNull() ?: 0
-
-        // searches the message for emojis
-        val foundEmojis = findEmojis(content, referencedMessage.getGuild().id)
-        if (foundEmojis.isEmpty())
-        {
-            Util.sendMessage(referencedMessage.channel, "No Emoji found!")
-            return
-        }
+            // searches the message for emojis
+            val foundEmojis = findEmojis(content, event.guildId ?: Snowflake(0))
+            if (foundEmojis.isEmpty())
+            {
+                Util.sendMessage(event, "No Emoji found!")
+                return
+            }
 
             val image = generateImage(foundEmojis, index, referencedMessage.getAuthorAsMemberOrNull())
             if (image == null)

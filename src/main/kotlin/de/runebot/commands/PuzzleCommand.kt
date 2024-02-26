@@ -9,12 +9,14 @@ import dev.kord.common.annotation.KordPreview
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.core.Kord
+import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.entity.ReactionEmoji
+import dev.kord.core.entity.User
 import dev.kord.core.entity.interaction.ChatInputCommandInteraction
 import dev.kord.core.entity.interaction.GuildButtonInteraction
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
@@ -24,18 +26,21 @@ import dev.kord.core.live.channel.live
 import dev.kord.core.live.channel.onMessageCreate
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
+import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
 import dev.kord.rest.builder.interaction.string
+import dev.kord.rest.builder.interaction.subCommand
+import dev.kord.rest.builder.message.MessageBuilder
 import dev.kord.x.emoji.Emojis
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 
-object PuzzleCommand : MessageCommandInterface
+object PuzzleCommand : RuneTextCommand, RuneSlashCommand
 {
-    var newPuzzle = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(
+    private var newPuzzle = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(
             listOf("new", "n"),
-            Pair("new <type> <name> <description> <difficulty> <maxAttempts> <rewardType> <rewardAmount> <puzzleDetails>", "Create a new puzzle.")
+            Pair("new", "Create a new puzzle.")
         ),
         { event, args, _ ->
             event.message.author?.let {
@@ -43,9 +48,7 @@ object PuzzleCommand : MessageCommandInterface
                 {
                     0 ->
                     {
-                        event.message.channel.createMessage {
-                            creationMenu.makeEmbed(this, creationActionRow)
-                        }
+                        event.message.channel.createMessage { createCreationMessage(this) }
                         return@let
                     }
 
@@ -60,6 +63,8 @@ object PuzzleCommand : MessageCommandInterface
         emptyList()
     )
 
+    private fun createCreationMessage(builder: MessageBuilder) = creationMenu.makeEmbed(builder, creationActionRow)
+
     private val puzzleActionRowBuilder = ActionRowBuilder().apply {
         interactionButton(
             style = ButtonStyle.Primary,
@@ -70,40 +75,44 @@ object PuzzleCommand : MessageCommandInterface
         )
     }
 
-    var puzzle = MessageCommandInterface.Subcommand(
-        MessageCommandInterface.CommandDescription(
+    var puzzle = RuneTextCommand.Subcommand(
+        RuneTextCommand.CommandDescription(
             listOf("puzzle", "puzzles", "pzl", "pzls"),
             Pair("puzzle", "Get a puzzle you haven't solved yet, or the currently active puzzle.")
         ),
         { event, args, _ ->
             event.message.author?.let {
-                val activePuzzleId = DB.getActivePuzzleIdForUser(it.id.value.toLong())
-                val puzzle = if (activePuzzleId == null) DB.getRandomPuzzle(it.id.value.toLong()) else DB.getPuzzle(activePuzzleId)
-                puzzle?.let { puz ->
-                    if (puzzleCatalogues[puz.puzzleId] == null)
-                    {
-                        puzzleCatalogues[puz.puzzleId] = Util.EmbedCatalogue()
-                        puzzleCatalogues[puz.puzzleId]!!.catalogue.pages.add(puz.createInfoPage(it))
-                        puzzleCatalogues[puz.puzzleId]!!.catalogue.pages.add(puz.createPuzzlePage(it))
-                        kord.on<GuildButtonInteractionCreateEvent>(consumer = {
-                            if (interaction.componentId != "confirm") return@on
-                            if (activePuzzleId != puz.puzzleId) puz.onStart(it.id.value.toLong())
-                            interaction.respondEphemeral {
-                                puzzleCatalogues[puz.puzzleId]!!.catalogue.gotoPage(1)
-                                puzzleCatalogues[puz.puzzleId]!!.makeEmbed(this, null)
-                            }
-                        })
-                    }
-                    event.message.channel.createMessage {
-                        puzzleCatalogues[puz.puzzleId]!!.catalogue.gotoPage(0)
-                        puzzleCatalogues[puz.puzzleId]!!.makeEmbed(this, puzzleActionRowBuilder)
-                    }
-                }
-            }
-                ?: Util.sendMessage(event, "You have solved all puzzles!")
+                getNewRandomPuzzle(it, event.message.channel)
+            } ?: Util.sendMessage(event, "You have solved all puzzles!")
         },
         listOf(newPuzzle)
     )
+
+    private suspend fun getNewRandomPuzzle(it: User, channel: MessageChannelBehavior)
+    {
+        val activePuzzleId = DB.getActivePuzzleIdForUser(it.id.value.toLong())
+        val puzzle = if (activePuzzleId == null) DB.getRandomPuzzle(it.id.value.toLong()) else DB.getPuzzle(activePuzzleId)
+        puzzle?.let { puz ->
+            if (puzzleCatalogues[puz.puzzleId] == null)
+            {
+                puzzleCatalogues[puz.puzzleId] = Util.EmbedCatalogue()
+                puzzleCatalogues[puz.puzzleId]!!.catalogue.pages.add(puz.createInfoPage(it))
+                puzzleCatalogues[puz.puzzleId]!!.catalogue.pages.add(puz.createPuzzlePage(it))
+                kord.on<GuildButtonInteractionCreateEvent>(consumer = {
+                    if (interaction.componentId != "confirm") return@on
+                    if (activePuzzleId != puz.puzzleId) puz.onStart(it.id.value.toLong())
+                    interaction.respondEphemeral {
+                        puzzleCatalogues[puz.puzzleId]!!.catalogue.gotoPage(1)
+                        puzzleCatalogues[puz.puzzleId]!!.makeEmbed(this, null)
+                    }
+                })
+            }
+            channel.createMessage {
+                puzzleCatalogues[puz.puzzleId]!!.catalogue.gotoPage(0)
+                puzzleCatalogues[puz.puzzleId]!!.makeEmbed(this, puzzleActionRowBuilder)
+            }
+        }
+    }
 
     override val names: List<String>
         get() = listOf("puzzle", "puzzles", "pzl", "pzls")
@@ -117,25 +126,10 @@ object PuzzleCommand : MessageCommandInterface
     private val creationMenu = Util.createPuzzleCreationMenu()
     private val creationActionRow = Util.createPuzzleCreationMenuActionRow()
 
-    override suspend fun prepare(kord: Kord)
+    override fun prepare(kord: Kord)
     {
         this.kord = kord
         kord.on<GuildButtonInteractionCreateEvent>(consumer = { handleInteraction(interaction) })
-        kord.createGlobalChatInputCommand("pause", "Pause the current puzzle.") { }
-        kord.createGlobalChatInputCommand("hint", "Request a hint for your current puzzle.") { }
-        kord.createGlobalChatInputCommand("solve", "Submit your solution for your current puzzle.") {
-            string("solution", "The solution to the puzzle.") {
-                required = true
-            }
-        }
-        kord.on<ChatInputCommandInteractionCreateEvent> {
-            when (interaction.command.rootName)
-            {
-                "solve" -> handleSolveAttempt(interaction)
-                "pause" -> handlePause(interaction)
-                "hint" -> handleHintRequest(interaction)
-            }
-        }
         println("Puzzle command prepared!")
     }
 
@@ -325,5 +319,39 @@ object PuzzleCommand : MessageCommandInterface
         fun getDialogue(): String = dialogues[state] ?: "Unexpected value for state! Please contact the developer."
 
         fun getDetails() = details
+    }
+
+    override val name: String
+        get() = "puzzle"
+    override val helpText: String
+        get() = "Interact with the puzzle system."
+
+    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    {
+        with(builder) {
+            subCommand("new", "Create a new puzzle.") { }
+            subCommand("play", "Get a puzzle you haven't solved yet, or the currently active puzzle.") { }
+            subCommand("pause", "Pause the currently active puzzle.") { }
+            subCommand("hint", "Get a hint for the currently active puzzle.") { }
+            subCommand("solve", "Submit a solution for the currently active puzzle.") {
+                string("solution", "The solution you want to submit.")
+            }
+        }
+    }
+
+    override suspend fun execute(event: ChatInputCommandInteractionCreateEvent)
+    {
+        with(event) {
+            val subCommands = interaction.command.data.options.value?.map { it.name } ?: emptyList()
+            when (subCommands.firstOrNull())
+            {
+                "new" -> interaction.respondEphemeral { createCreationMessage(this) }
+                "play" -> interaction.respondEphemeral { getNewRandomPuzzle(interaction.user, event.interaction.channel) }
+                "pause" -> handlePause(interaction)
+                "hint" -> handleHintRequest(interaction)
+                "solve" -> handleSolveAttempt(interaction)
+                else -> interaction.respondEphemeral { content = "Unknown subcommand." }
+            }
+        }
     }
 }
