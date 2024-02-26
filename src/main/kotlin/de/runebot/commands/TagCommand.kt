@@ -325,7 +325,8 @@ object TagCommand : RuneTextCommand, RuneSlashCommand
                     else
                     {
                         interaction.respondPublic {
-                            content = tag
+                            content = "### $tagName:\n" +
+                                    "$tag"
                         }
                     }
                 }
@@ -344,7 +345,8 @@ object TagCommand : RuneTextCommand, RuneSlashCommand
                     else
                     {
                         interaction.respondPublic {
-                            content = tag
+                            content = "### $tagName:\n" +
+                                    "$tag"
                         }
                     }
                 }
