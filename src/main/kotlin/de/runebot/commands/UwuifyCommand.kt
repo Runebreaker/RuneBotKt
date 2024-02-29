@@ -13,6 +13,9 @@ import kotlin.math.tanh
 
 object UwuifyCommand : RuneTextCommand, RuneMessageCommand
 {
+    override val internalId: String
+        get() = "uwu"
+
     private val uwuify = RuneTextCommand.Subcommand(
         commandDescription = RuneTextCommand.CommandDescription(names, Pair("uwu ( <input> | reply )", shortHelpText)),
         function = { event, args, _ ->
@@ -69,7 +72,7 @@ object UwuifyCommand : RuneTextCommand, RuneMessageCommand
     override val name: String
         get() = "uwuify"
 
-    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    override suspend fun build(builder: GlobalMessageCommandCreateBuilder)
     {
         // nothing to declare
     }

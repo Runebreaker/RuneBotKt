@@ -7,6 +7,9 @@ import dev.kord.core.event.message.MessageCreateEvent
 
 object AdminRoleCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "setadmin"
+
     override val names: List<String>
         get() = listOf("setadmin", "setadmon", "setgommemode")
     override val shortHelpText: String

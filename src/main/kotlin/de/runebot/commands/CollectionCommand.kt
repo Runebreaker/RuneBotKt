@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.toList
 
 object CollectionCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "collection"
+
     private val add: RuneTextCommand.Subcommand = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(listOf("add", "a"), Pair("add", "")),
         subcommands = listOf(

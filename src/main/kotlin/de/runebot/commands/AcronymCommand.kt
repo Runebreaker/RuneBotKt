@@ -5,13 +5,16 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
-import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
+import dev.kord.rest.builder.interaction.RootInputChatBuilder
 import dev.kord.rest.builder.interaction.string
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 object AcronymCommand : RuneTextCommand, RuneSlashCommand
 {
+    override val internalId: String
+        get() = "acronym"
+
     override val names: List<String>
         get() = listOf("acronym", "acro")
     override val shortHelpText: String
@@ -68,10 +71,10 @@ object AcronymCommand : RuneTextCommand, RuneSlashCommand
 
     override val name: String
         get() = "acronym"
-    override val helpText: String
+    override val description: String
         get() = shortHelpText
 
-    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    override suspend fun build(builder: RootInputChatBuilder)
     {
         with(builder)
         {

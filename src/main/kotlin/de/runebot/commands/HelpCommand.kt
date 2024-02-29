@@ -7,6 +7,9 @@ import dev.kord.core.event.message.MessageCreateEvent
 
 object HelpCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "help"
+
     override val names: List<String>
         get() = listOf("help", "?")
     override val shortHelpText: String

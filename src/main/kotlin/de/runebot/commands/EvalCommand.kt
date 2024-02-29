@@ -9,6 +9,9 @@ import redempt.crunch.Crunch
 
 object EvalCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "eval"
+
     override val names: List<String>
         get() = listOf("eval")
     override val shortHelpText: String

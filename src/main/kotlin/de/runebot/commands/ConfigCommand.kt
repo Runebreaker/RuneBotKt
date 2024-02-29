@@ -6,6 +6,9 @@ import dev.kord.core.event.message.MessageCreateEvent
 
 object ConfigCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "config"
+
     override val names: List<String>
         get() = listOf("config")
     override val shortHelpText: String

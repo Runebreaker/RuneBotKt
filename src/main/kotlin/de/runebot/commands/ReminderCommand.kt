@@ -15,6 +15,9 @@ import kotlin.time.Duration.Companion.seconds
 
 object ReminderCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "reminder"
+
     private val reminder = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(names, Pair("reminder <time> <message>", "After specified time, posts the given message and mentions the author and reactors.")),
         { event, args, _ ->

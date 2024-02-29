@@ -6,6 +6,9 @@ import dev.kord.core.event.message.MessageCreateEvent
 
 object ImpostorCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "impostor"
+
     override val names: List<String>
         get() = listOf("impostor", "sussybaka")
     override val shortHelpText: String

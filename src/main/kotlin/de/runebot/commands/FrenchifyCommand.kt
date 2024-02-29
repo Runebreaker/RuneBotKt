@@ -10,6 +10,9 @@ import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
 
 object FrenchifyCommand : RuneTextCommand, RuneMessageCommand
 {
+    override val internalId: String
+        get() = "frenchify"
+
     private val frenchify = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(names, Pair("frenchify ( <input> | reply )", shortHelpText)),
         { event, args, _ ->
@@ -93,7 +96,7 @@ object FrenchifyCommand : RuneTextCommand, RuneMessageCommand
     override val name: String
         get() = "frenchify"
 
-    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    override suspend fun build(builder: GlobalMessageCommandCreateBuilder)
     {
         // nothing to declare
     }

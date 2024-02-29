@@ -13,6 +13,9 @@ import java.net.http.HttpResponse
 
 object AnilistCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "anilist"
+
     private val search = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(listOf("search", "s"), Pair("search <name>", "Searches AniList for the provided name.")),
         { event, args, _ ->

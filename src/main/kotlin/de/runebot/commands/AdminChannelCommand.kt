@@ -9,6 +9,9 @@ import dev.kord.core.event.message.MessageCreateEvent
 
 object AdminChannelCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "adminchannel"
+
     private val set = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(listOf("set", "s"), Pair("set", "Sets the current channel as admin channel.")),
         { event, args, _ ->

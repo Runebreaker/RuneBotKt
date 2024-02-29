@@ -35,10 +35,6 @@ object RuneBot
         kord = Kord(token)
 
         kord?.let { kord ->
-            kord.getGlobalApplicationCommands().collect {
-                it.delete()
-            }
-
             Registry.prepareCommands(kord)
 
             kord.on<MessageCreateEvent> {

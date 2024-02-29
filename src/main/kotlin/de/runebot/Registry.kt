@@ -2,7 +2,9 @@ package de.runebot
 
 import de.runebot.behaviors.*
 import de.runebot.commands.*
+import de.runebot.config.Config
 import dev.kord.core.Kord
+import dev.kord.core.entity.application.GlobalApplicationCommand
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
@@ -50,6 +52,27 @@ object Registry
 
     suspend fun prepareCommands(kord: Kord)
     {
+        // ensure ids are unique
+        if (commands.distinctBy { it.internalId }.size != commands.size)
+        {
+            throw RuntimeException("Duplicate internal IDs are used: ${commands.map { it.javaClass.name to it.internalId }}")
+        }
+
+        val globalAppCommandsInDiscord = mutableListOf<GlobalApplicationCommand>()
+
+        kord.getGlobalApplicationCommands().collect {
+            globalAppCommandsInDiscord.add(it)
+        }
+
+        // remove commands from config, if they are no longer registered with Discord
+        Config.applicationCommands.toList().forEach { (internalId, snowflake) ->
+            if (snowflake !in globalAppCommandsInDiscord.map { it.id })
+            {
+                Config.applicationCommands.remove(internalId)
+            }
+        }
+
+        // sort commands into types
         commands.forEach { cmd ->
             if (cmd is RuneTextCommand)
             {
@@ -65,22 +88,53 @@ object Registry
             {
                 if (slashCommandMap.containsKey(cmd.name)) error("${cmd.name} is already a registered slash command.")
                 slashCommandMap[cmd.name] = cmd
-
-                kord.createGlobalChatInputCommand(cmd.name, cmd.helpText) {
-                    cmd.createCommand(this)
-                }
             }
 
             if (cmd is RuneMessageCommand)
             {
                 if (messageCommandMap.containsKey(cmd.name)) error("${cmd.name} is already a registered message command.")
                 messageCommandMap[cmd.name] = cmd
-
-                kord.createGlobalMessageCommand(cmd.name) {
-                    cmd.createCommand(this)
-                }
             }
         }
+
+        // update/register commands with Discord
+        slashCommandMap.forEach { (_, cmd) ->
+            // command snowflake already in storage -> send update to Discord
+            val snowflake = Config.applicationCommands[cmd.internalId]
+            if (snowflake != null)
+            {
+                kord.rest.interaction.modifyGlobalChatInputApplicationCommand(kord.selfId, snowflake) {
+                    cmd.build(this)
+                }
+            }
+            else
+            {
+                // when registering a new command with Discord, save its Snowflake to bot config
+                val newAppCommand = kord.createGlobalChatInputCommand(cmd.name, cmd.description) {
+                    cmd.build(this)
+                }
+                Config.addCommand(cmd.internalId, newAppCommand.id)
+            }
+        }
+        // message commands are overwritten, because it's too complicated otherwise :D
+        messageCommandMap.forEach { (_, cmd) ->
+            // when registering a new command with Discord, save its Snowflake to bot config
+            val newAppCommand = kord.createGlobalMessageCommand(cmd.name) {
+                cmd.build(this)
+            }
+            Config.addCommand(cmd.internalId, newAppCommand.id)
+
+        }
+
+        // remove commands from Discord which should not be there (not in bot config)
+        val toDelete = mutableListOf<GlobalApplicationCommand>()
+        kord.getGlobalApplicationCommands().collect {
+            if (it.id !in Config.applicationCommands.values)
+            {
+                toDelete.add(it)
+            }
+        }
+        toDelete.forEach { it.delete() }
     }
 
     suspend fun handleBehaviors(messageCreateEvent: MessageCreateEvent)
