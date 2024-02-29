@@ -3,6 +3,7 @@ package de.runebot.database
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.javatime.timestamp
 import java.time.LocalDate
 
 //region Main DB
@@ -20,6 +21,17 @@ object Timers : Table()
     val message: Column<String> = text("message")
     val channelId: Column<Long> = long("channelId")
     val messageId: Column<Long> = long("messageId")
+}
+
+object TimersV2 : Table()
+{
+    val id = integer("id").autoIncrement()
+    val creatorId = ulong("creatorId")
+    val targetTime = timestamp("targetTime")
+    val message = text("message")
+    val subscriberIds = text("subscriberIds") // list of uLongs as JSON
+
+    override val primaryKey = PrimaryKey(id)
 }
 
 object Tags : Table()
