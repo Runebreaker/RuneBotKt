@@ -26,6 +26,9 @@ import kotlin.time.Duration.Companion.days
 
 object WhatCommand : RuneTextCommand, RuneMessageCommand
 {
+    override val internalId: String
+        get() = "what"
+
     override val names: List<String>
         get() = listOf("what")
     override val shortHelpText: String
@@ -244,7 +247,7 @@ object WhatCommand : RuneTextCommand, RuneMessageCommand
     override val name: String
         get() = "what"
 
-    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    override suspend fun build(builder: GlobalMessageCommandCreateBuilder)
     {
         // nothing to declare
     }

@@ -16,7 +16,7 @@ interface RuneMessageCommand : RuneCommand
     /**
      * this method should declare nsfw, admin, etc.
      */
-    suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    suspend fun build(builder: GlobalMessageCommandCreateBuilder)
 
     /**
      * what to do, when command is selected

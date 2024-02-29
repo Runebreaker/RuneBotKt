@@ -41,6 +41,9 @@ import kotlin.io.path.Path
 
 object NumbersCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "numbers"
+
     private val clear = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(listOf("clear", "clr"), Pair("clear", "Deletes all stored doujins.")),
         { event, args, _ ->

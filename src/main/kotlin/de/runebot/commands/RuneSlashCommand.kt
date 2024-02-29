@@ -1,7 +1,7 @@
 package de.runebot.commands
 
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
-import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
+import dev.kord.rest.builder.interaction.RootInputChatBuilder
 
 /**
  * Discord slash command aka chat input command
@@ -16,12 +16,12 @@ interface RuneSlashCommand : RuneCommand
     /**
      * short text describing what this command does
      */
-    val helpText: String
+    val description: String
 
     /**
      * this method should define parameters and settings of slash command
      */
-    suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    suspend fun build(builder: RootInputChatBuilder)
 
     /**
      * what to do, when command is sent

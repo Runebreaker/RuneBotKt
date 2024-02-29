@@ -2,8 +2,8 @@ package de.runebot.config
 
 import de.runebot.Util.Rule
 import de.runebot.commands.BehaviorCommand
+import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
@@ -19,8 +19,13 @@ object Config
         encodeDefaults = true
     }
 
-    private val configs: MutableMap<ULong, ConfigStructure> = mutableMapOf()
+    private var botConfig: BotConfigStructure = BotConfigStructure()
+    private val guildConfigs: MutableMap<ULong, GuildConfigStructure> = mutableMapOf()
     private val pathToConfigDir = Path("config/")
+    private val pathToBotConfig = pathToConfigDir.resolve("general.json")
+
+    val applicationCommands
+        get() = botConfig.applicationCommands
 
     init
     {
@@ -29,9 +34,38 @@ object Config
             Files.createDirectory(pathToConfigDir)
         }
 
-        pathToConfigDir.listDirectoryEntries().forEach { path ->
-            configs[path.name.removeSuffix(".json").toULong()] = serializer.decodeFromString(path.toFile().readText())
+        if (Files.notExists(pathToBotConfig))
+        {
+            Files.createFile(pathToBotConfig)
+            storeBotConfig()
         }
+
+        pathToConfigDir.listDirectoryEntries().forEach { path ->
+            if (path.toFile().name == "general.json")
+            {
+                botConfig = serializer.decodeFromString(path.toFile().readText())
+            }
+            else
+            {
+                guildConfigs[path.name.removeSuffix(".json").toULong()] = serializer.decodeFromString(path.toFile().readText())
+            }
+        }
+    }
+
+    fun addCommand(internalId: String, snowflake: Snowflake)
+    {
+        this.botConfig.applicationCommands[internalId] = snowflake
+        storeBotConfig()
+    }
+
+    fun storeBotConfig()
+    {
+        if (Files.notExists(pathToBotConfig))
+        {
+            Files.createFile(pathToBotConfig)
+        }
+
+        Files.writeString(pathToBotConfig, serializer.encodeToString(botConfig))
     }
 
     fun setAdminRoleId(guild: ULong, adminRoleId: ULong)
@@ -45,9 +79,9 @@ object Config
         return getConfigForGuild(guild).adminRoleId
     }
 
-    fun getConfigForGuild(id: ULong): ConfigStructure
+    fun getConfigForGuild(id: ULong): GuildConfigStructure
     {
-        return configs.getOrPut(id) { ConfigStructure() }
+        return guildConfigs.getOrPut(id) { GuildConfigStructure() }
     }
 
     fun storeConfigForGuild(id: ULong)
@@ -144,8 +178,16 @@ object Config
     //endregion
 }
 
+/**
+ * @param applicationCommands map of internal id to command id as decided by Discord
+ */
 @Serializable
-data class ConfigStructure(
+data class BotConfigStructure(
+    val applicationCommands: MutableMap<String, Snowflake> = mutableMapOf()
+)
+
+@Serializable
+data class GuildConfigStructure(
     var adminRoleId: ULong? = null,
     var keyValueStorage: MutableMap<String, String> = mutableMapOf(),
     // For the UwU translations

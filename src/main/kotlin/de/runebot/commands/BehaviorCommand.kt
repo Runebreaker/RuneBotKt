@@ -8,6 +8,9 @@ import dev.kord.core.event.message.MessageCreateEvent
 
 object BehaviorCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "behavior"
+
     override val needsAdmin: Boolean
         get() = true
     override val names: List<String>

@@ -15,7 +15,7 @@ import dev.kord.core.entity.User
 import dev.kord.core.entity.effectiveName
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
-import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
+import dev.kord.rest.builder.interaction.RootInputChatBuilder
 import dev.kord.rest.builder.interaction.string
 import dev.kord.rest.builder.interaction.subCommand
 import dev.kord.rest.builder.interaction.user
@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.toList
 
 object TagCommand : RuneTextCommand, RuneSlashCommand
 {
+    override val internalId: String
+        get() = "tag"
+
     private val create = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(listOf("create", "cr", "c"), Pair("create <tag name> <message>", "Creates a new tag.")),
         { event, args, _ ->
@@ -245,10 +248,10 @@ object TagCommand : RuneTextCommand, RuneSlashCommand
 
     override val name: String
         get() = "tag"
-    override val helpText: String
+    override val description: String
         get() = "get/create text tags"
 
-    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    override suspend fun build(builder: RootInputChatBuilder)
     {
         with(builder)
         {

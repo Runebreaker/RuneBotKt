@@ -10,6 +10,9 @@ import kotlin.random.Random
 
 object MockCommand : RuneTextCommand, RuneMessageCommand
 {
+    override val internalId: String
+        get() = "mock"
+
     override val names: List<String>
         get() = listOf("mock")
     override val shortHelpText: String
@@ -43,7 +46,7 @@ object MockCommand : RuneTextCommand, RuneMessageCommand
     override val name: String
         get() = "mock"
 
-    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    override suspend fun build(builder: GlobalMessageCommandCreateBuilder)
     {
         // nothing special to declare
     }

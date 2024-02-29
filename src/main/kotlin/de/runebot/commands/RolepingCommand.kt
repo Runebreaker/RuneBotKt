@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.onEach
 
 object RolepingCommand : RuneTextCommand
 {
+    override val internalId: String
+        get() = "roleping"
+
     private val roleping = RuneTextCommand.Subcommand(
         RuneTextCommand.CommandDescription(names, Pair("set", "Sets the current channel as admin channel.")),
         { event, args, _ ->
