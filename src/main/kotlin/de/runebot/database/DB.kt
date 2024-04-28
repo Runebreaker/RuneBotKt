@@ -9,8 +9,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.exceptions.ExposedSQLException
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.LocalDate
 import kotlin.io.path.Path
@@ -675,7 +675,7 @@ object DB
         return try
         {
             transaction(puzzleDB) {
-                PuzzleStatsByUser.select {
+                PuzzleStatsByUser.selectAll().where {
                     PuzzleStatsByUser.puzzleId eq puzzleId and PuzzleStatsByUser.solved
                 }.map { it[PuzzleStatsByUser.userId] }
             }
@@ -707,7 +707,7 @@ object DB
         return try
         {
             transaction(puzzleDB) {
-                Puzzles.select {
+                Puzzles.selectAll().where {
                     Puzzles.approved eq false
                 }.map {
                     Puzzle.createPuzzle(
@@ -773,9 +773,7 @@ object DB
         return try
         {
             transaction(puzzleDB) {
-                PuzzleStatsByUser.select {
-                    (PuzzleStatsByUser.userId eq userId) and (PuzzleStatsByUser.puzzleId eq puzzleId)
-                }.firstOrNull()?.let {
+                PuzzleStatsByUser.selectAll().where { (PuzzleStatsByUser.userId eq userId) and (PuzzleStatsByUser.puzzleId eq puzzleId) }.firstOrNull()?.let {
                     Triple(it[PuzzleStatsByUser.attempts], it[PuzzleStatsByUser.solved], it[PuzzleStatsByUser.time])
                 }
             }
@@ -791,9 +789,7 @@ object DB
         try
         {
             return transaction(puzzleDB) {
-                Puzzles.select {
-                    Puzzles.puzzleId eq puzzleId
-                }.firstOrNull()?.let {
+                Puzzles.selectAll().where { Puzzles.puzzleId eq puzzleId }.firstOrNull()?.let {
                     Puzzle.createPuzzle(
                         Util.PuzzleType.fromId(it[Puzzles.puzzleType]),
                         it[Puzzles.puzzleId],
@@ -826,9 +822,9 @@ object DB
         try
         {
             return transaction(puzzleDB) {
-                Puzzles.leftJoin(PuzzleStatsByUser, { puzzleId }, { puzzleId }).select {
-                    (Puzzles.approved eq true) and (Puzzles.creatorId neq userId) and (PuzzleStatsByUser.solved eq false or PuzzleStatsByUser.solved.isNull())
-                }.orderBy(Random()).firstOrNull()?.let {
+                Puzzles.leftJoin(PuzzleStatsByUser, { puzzleId }, { puzzleId }).selectAll()
+                    .where { (Puzzles.approved eq true) and (Puzzles.creatorId neq userId) and (PuzzleStatsByUser.solved eq false or PuzzleStatsByUser.solved.isNull()) }
+                    .orderBy(Random()).firstOrNull()?.let {
                     Puzzle.createPuzzle(
                         Util.PuzzleType.fromId(it[Puzzles.puzzleType]),
                         it[Puzzles.puzzleId],
@@ -872,9 +868,7 @@ object DB
         return try
         {
             transaction(puzzleDB) {
-                UserStatsOverall.select {
-                    UserStatsOverall.userId eq userId
-                }.firstOrNull()?.let {
+                UserStatsOverall.selectAll().where { UserStatsOverall.userId eq userId }.firstOrNull()?.let {
                     it[UserStatsOverall.activePuzzle]
                 }
             }
