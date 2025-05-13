@@ -3,7 +3,6 @@ package de.runebot.config
 import de.runebot.Util.Rule
 import de.runebot.commands.BehaviorCommand
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.nio.file.Files
@@ -30,7 +29,7 @@ object Config
         }
 
         pathToConfigDir.listDirectoryEntries().forEach { path ->
-            configs[path.name.removeSuffix(".json").toULong()] = serializer.decodeFromString(path.toFile().readText())
+            configs[path.name.removeSuffix(".json").toULongOrNull() ?: return@forEach] = serializer.decodeFromString(path.toFile().readText())
         }
     }
 

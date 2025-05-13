@@ -7,6 +7,7 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
+import dev.kord.rest.builder.interaction.GlobalMessageCommandModifyBuilder
 
 object FrenchifyCommand : RuneTextCommand, RuneMessageCommand
 {
@@ -93,7 +94,12 @@ object FrenchifyCommand : RuneTextCommand, RuneMessageCommand
     override val name: String
         get() = "frenchify"
 
-    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    override fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    {
+        // nothing to declare
+    }
+
+    override fun editCommand(builder: GlobalMessageCommandModifyBuilder)
     {
         // nothing to declare
     }

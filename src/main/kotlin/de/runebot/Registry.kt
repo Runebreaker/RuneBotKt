@@ -2,10 +2,12 @@ package de.runebot
 
 import de.runebot.behaviors.*
 import de.runebot.commands.*
+import dev.kord.common.entity.ApplicationCommandType
 import dev.kord.core.Kord
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import kotlinx.coroutines.flow.toList
 
 object Registry
 {
@@ -50,6 +52,8 @@ object Registry
 
     suspend fun prepareCommands(kord: Kord)
     {
+        val registeredAppCommands = kord.rest.interaction.getGlobalApplicationCommands(kord.selfId).toList().associateBy { it.name }
+
         commands.forEach { cmd ->
             if (cmd is RuneTextCommand)
             {
@@ -66,8 +70,23 @@ object Registry
                 if (slashCommandMap.containsKey(cmd.name)) error("${cmd.name} is already a registered slash command.")
                 slashCommandMap[cmd.name] = cmd
 
-                kord.createGlobalChatInputCommand(cmd.name, cmd.helpText) {
-                    cmd.createCommand(this)
+                if (registeredAppCommands[cmd.name] == null)
+                {
+                    kord.rest.interaction.createGlobalChatInputApplicationCommand(kord.selfId, cmd.name, cmd.helpText) {
+                        cmd.editOrCreateCommand(this)
+                    }
+                }
+                else
+                {
+                    val commandId = registeredAppCommands[cmd.name]?.id ?: error("Failed to retrieve ID of ${cmd.name}")
+
+                    if (registeredAppCommands[cmd.name]?.type?.value == ApplicationCommandType.ChatInput)
+                    {
+                        kord.rest.interaction.modifyGlobalChatInputApplicationCommand(kord.selfId, commandId)
+                        {
+                            cmd.editOrCreateCommand(this)
+                        }
+                    }
                 }
             }
 
@@ -76,11 +95,34 @@ object Registry
                 if (messageCommandMap.containsKey(cmd.name)) error("${cmd.name} is already a registered message command.")
                 messageCommandMap[cmd.name] = cmd
 
-                kord.createGlobalMessageCommand(cmd.name) {
-                    cmd.createCommand(this)
+                if (registeredAppCommands[cmd.name] == null)
+                {
+                    kord.rest.interaction.createGlobalMessageCommandApplicationCommand(kord.selfId, cmd.name) {
+                        cmd.createCommand(this)
+                    }
+                }
+                else
+                {
+                    val commandId = registeredAppCommands[cmd.name]?.id ?: error("Failed to retrieve ID of ${cmd.name}")
+
+                    if (registeredAppCommands[cmd.name]?.type?.value == ApplicationCommandType.Message)
+                    {
+                        kord.rest.interaction.modifyGlobalMessageApplicationCommand(kord.selfId, commandId)
+                        {
+                            cmd.editCommand(this)
+                        }
+                    }
                 }
             }
         }
+
+        // remove app commands, that should not be registered
+        val runeApplicationCommandNames = commands.mapNotNull { (it as? RuneSlashCommand)?.name ?: (it as? RuneMessageCommand)?.name }
+
+        kord.getGlobalApplicationCommands()
+            .toList()
+            .filter { it.name !in runeApplicationCommandNames }
+            .forEach { it.delete() }
     }
 
     suspend fun handleBehaviors(messageCreateEvent: MessageCreateEvent)

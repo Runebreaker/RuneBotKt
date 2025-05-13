@@ -2,6 +2,7 @@ package de.runebot.commands
 
 import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
+import dev.kord.rest.builder.interaction.GlobalMessageCommandModifyBuilder
 
 /**
  * refers to Discord message commands, which can be used when right-clicking a message
@@ -14,9 +15,10 @@ interface RuneMessageCommand : RuneCommand
     val name: String
 
     /**
-     * this method should declare nsfw, admin, etc.
+     * these methods should declare nsfw, admin, etc.
      */
-    suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    fun editCommand(builder: GlobalMessageCommandModifyBuilder)
 
     /**
      * what to do, when command is selected
