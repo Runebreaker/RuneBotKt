@@ -5,7 +5,7 @@ import dev.kord.core.Kord
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
-import dev.kord.rest.builder.interaction.GlobalChatInputCreateBuilder
+import dev.kord.rest.builder.interaction.RootInputChatBuilder
 import dev.kord.rest.builder.interaction.string
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -71,7 +71,7 @@ object AcronymCommand : RuneTextCommand, RuneSlashCommand
     override val helpText: String
         get() = shortHelpText
 
-    override suspend fun createCommand(builder: GlobalChatInputCreateBuilder)
+    override fun editOrCreateCommand(builder: RootInputChatBuilder)
     {
         with(builder)
         {

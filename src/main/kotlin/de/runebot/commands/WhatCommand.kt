@@ -10,6 +10,7 @@ import dev.kord.core.entity.Member
 import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
 import dev.kord.rest.builder.interaction.GlobalMessageCommandCreateBuilder
+import dev.kord.rest.builder.interaction.GlobalMessageCommandModifyBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.awt.geom.Ellipse2D
@@ -244,7 +245,12 @@ object WhatCommand : RuneTextCommand, RuneMessageCommand
     override val name: String
         get() = "what"
 
-    override suspend fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    override fun createCommand(builder: GlobalMessageCommandCreateBuilder)
+    {
+        // nothing to declare
+    }
+
+    override fun editCommand(builder: GlobalMessageCommandModifyBuilder)
     {
         // nothing to declare
     }
