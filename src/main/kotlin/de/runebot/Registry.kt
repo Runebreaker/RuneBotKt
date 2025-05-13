@@ -7,6 +7,7 @@ import dev.kord.core.Kord
 import dev.kord.core.event.interaction.ChatInputCommandInteractionCreateEvent
 import dev.kord.core.event.interaction.MessageCommandInteractionCreateEvent
 import dev.kord.core.event.message.MessageCreateEvent
+import kotlinx.coroutines.flow.toList
 
 object Registry
 {
@@ -114,6 +115,14 @@ object Registry
                 }
             }
         }
+
+        // remove app commands, that should not be registered
+        val runeApplicationCommandNames = commands.mapNotNull { (it as? RuneSlashCommand)?.name ?: (it as? RuneMessageCommand)?.name }
+
+        kord.getGlobalApplicationCommands()
+            .toList()
+            .filter { it.name !in runeApplicationCommandNames }
+            .forEach { it.delete() }
     }
 
     suspend fun handleBehaviors(messageCreateEvent: MessageCreateEvent)
