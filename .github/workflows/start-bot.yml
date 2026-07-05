@@ -1,7 +1,7 @@
 name: Start Bot
 on:
   workflow_run:
-    workflows: ["Docker Image CI"]
+    workflows: ["Build and publish Docker image"]
     types:
       - completed
   workflow_dispatch:

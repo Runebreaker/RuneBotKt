@@ -1,0 +1,13 @@
+services:
+  runebotkt:
+    image: ghcr.io/runebreaker/runebotkt:latest
+    container_name: runebotkt
+    restart: unless-stopped
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN:?BOT_TOKEN must be set}
+      ADMIN_ROLE_ID: ${ADMIN_ROLE_ID:-}
+    volumes:
+      - ./config:/app/config
+      - ./dbs:/app/dbs
+      - ./doujins:/app/doujins
+      - ./icons:/app/icons
