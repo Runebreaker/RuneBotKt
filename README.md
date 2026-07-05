@@ -23,4 +23,4 @@ Yes.
    docker compose up -d
    ```
 
-The `dbs/` directory is mounted into the container so its sqlite databases persist across restarts.
+The `config/`, `dbs/`, `doujins/` and `icons/` directories are mounted into the container so config, databases and cached images persist across restarts.
