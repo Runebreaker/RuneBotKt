@@ -16,7 +16,7 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots")
 
     // Crunch eval lib
-    maven("https://redempt.dev")
+    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -38,7 +38,7 @@ dependencies {
 
     implementation("org.jetbrains.exposed:exposed-java-time:0.46.0")
 
-    implementation("com.github.Redempt:Crunch:1.1.3")
+    implementation("com.github.boxbeam:Crunch:1.1.2")
 }
 
 tasks.test {
