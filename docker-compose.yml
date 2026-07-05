@@ -1,0 +1,9 @@
+services:
+  runebotkt:
+    image: ghcr.io/runebreaker/runebotkt:latest
+    container_name: runebotkt
+    restart: unless-stopped
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN:?BOT_TOKEN must be set}
+    volumes:
+      - ./dbs:/app/dbs

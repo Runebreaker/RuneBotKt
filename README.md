@@ -12,3 +12,15 @@ This is a discord bot with misc. functionalities to improve your discord experie
 Yes.
 ## When should you add documentation?
 Yes.
+
+## Running with Docker
+1. Copy `.env.example` to `.env` and fill in your bot token:
+   ```
+   BOT_TOKEN=your-discord-bot-token
+   ```
+2. Start the bot:
+   ```
+   docker compose up -d
+   ```
+
+The `dbs/` directory is mounted into the container so its sqlite databases persist across restarts.

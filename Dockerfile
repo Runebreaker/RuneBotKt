@@ -1,13 +1,16 @@
-FROM gradle:8.6.0-jdk21 AS builder
-WORKDIR /app
+# syntax=docker/dockerfile:1
 
-ENV GRADLE_USER_HOME /cache
+FROM gradle:8.14-jdk21 AS build
+WORKDIR /home/gradle/RuneBotKt
+
 COPY build.gradle.kts settings.gradle.kts ./
-COPY src/main/ src/main/
-RUN gradle installDist
+COPY src ./src
 
-FROM eclipse-temurin:21-jdk
+RUN gradle --no-daemon installDist
+
+FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
-COPY --from=builder /app/build/install/RuneBotKt .
 
-CMD ["/app/bin/RuneBotKt"]
+COPY --from=build /home/gradle/RuneBotKt/build/install/RuneBotKt/ ./
+
+ENTRYPOINT ["/app/bin/RuneBotKt"]

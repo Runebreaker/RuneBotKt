@@ -198,3 +198,4 @@ gradle-app.setting
 /dbs/doujinInfos.sqlite
 /dbs/ghtTagDB.sqlite
 /config/
+.env
