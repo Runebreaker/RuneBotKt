@@ -268,8 +268,7 @@ object NumbersCommand : RuneTextCommand
         val page = CataloguePage()
 
         // Processing values
-        val combinedTitle = data.name
-        data.original_name?.let { combinedTitle.plus("${System.lineSeparator()}$it") }
+        val combinedTitle = data.original_name?.let { "${data.name}${System.lineSeparator()}$it" } ?: data.name
 
         // Applying them
         page.setTitle("$number")
@@ -430,7 +429,7 @@ object NumbersCommand : RuneTextCommand
                 name,
                 original_name ?: "",
                 parodies,
-                categories,
+                characters,
                 tags,
                 artists,
                 groups,
