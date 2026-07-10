@@ -29,10 +29,11 @@ object AnilistCommand : RuneTextCommand
             val result = serializer.decodeFromString<Root>(response.body())
             val bobTheStringBuilder = StringBuilder("Found results:\n")
             result.data.Page.media.forEach { media ->
-                media.title.english?.let { bobTheStringBuilder.append(it).append("//") }
-                media.title.native?.let { bobTheStringBuilder.append(it).append("//") }
-                media.title.romaji?.let { bobTheStringBuilder.append(it).append("//") }
-                bobTheStringBuilder.trim { it == '/' }
+                val titleBuilder = StringBuilder()
+                media.title.english?.let { titleBuilder.append(it).append("//") }
+                media.title.native?.let { titleBuilder.append(it).append("//") }
+                media.title.romaji?.let { titleBuilder.append(it).append("//") }
+                bobTheStringBuilder.append(titleBuilder.toString().trim { it == '/' })
                 bobTheStringBuilder.append(System.lineSeparator())
             }
             // Test

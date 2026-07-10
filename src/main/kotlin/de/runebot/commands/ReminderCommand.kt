@@ -54,6 +54,7 @@ object ReminderCommand : RuneTextCommand
         if (args.size <= 1)
         {
             Util.sendMessage(event, "Please specify a time.")
+            return
         }
         if (names.contains(args[0].substring(1))) reminder.execute(event, args.subList(1, args.size), listOf(args[0].substring(1)))
     }
